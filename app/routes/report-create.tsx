@@ -21,10 +21,8 @@ import {
   getProductByName,
   createProduct,
   addProductPrice,
-  saveReportVersion,
-  getReportVersions,
-  deleteOldVersions,
   createSharedLink,
+  getAllChecks,
 } from "~/lib/db";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "~/components/ui/button";
@@ -71,7 +69,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   }
 
   // Load all related data
-  const [salesItems, billHoldItems, checkItems, customers, products, banks, versions] =
+  const [salesItems, billHoldItems, checkItems, customers, products, banks, allChecks] =
     await Promise.all([
       getSalesItemsByReport(db, report.id),
       getBillHoldItemsByReport(db, report.id),
@@ -79,7 +77,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
       getAllCustomers(db),
       getProductsPrices(db),
       getAllBanks(db),
-      getReportVersions(db, report.id),
+      getAllChecks(db),
     ]);
 
   return {
@@ -93,7 +91,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
     customers,
     products,
     banks,
-    versions,
+    allChecks,
   };
 }
 
@@ -255,28 +253,6 @@ export async function action({ context, request }: Route.ActionArgs) {
         return { success: message, timestamp: new Date().toISOString(), counts: { salesCount, billHoldCount, checkCount } };
       }
 
-      case "create-version": {
-        const reportId = parseInt(formData.get("reportId") as string);
-        const salesData = JSON.parse(formData.get("salesData") as string);
-        const billHoldData = JSON.parse(formData.get("billHoldData") as string);
-        const checkData = JSON.parse(formData.get("checkData") as string);
-        const versionNumber = parseInt(formData.get("versionNumber") as string);
-
-        await saveReportVersion(
-          db,
-          reportId,
-          versionNumber,
-          salesData,
-          billHoldData,
-          checkData
-        );
-
-        // Cleanup old versions
-        await deleteOldVersions(db, reportId);
-
-        return { success: "บันทึกเวอร์ชั่นเรียบร้อย" };
-      }
-
       case "create-share-link": {
         const reportId = parseInt(formData.get("reportId") as string);
         const linkId = await createSharedLink(db, reportId);
@@ -306,7 +282,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
     customers,
     products,
     banks,
-    versions,
+    allChecks,
   } = loaderData;
 
   const navigation = useNavigation();
@@ -322,9 +298,6 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
-  // Version history modal
-  const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
 
   // Share link modal
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -408,21 +381,6 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
     });
   }, [billHoldData, checkData, report.id, reportDate, salesData, submit]);
 
-  const createVersion = () => {
-    const formData = new FormData();
-    formData.append("intent", "create-version");
-    formData.append("reportId", report.id.toString());
-    formData.append("salesData", JSON.stringify(salesData));
-    formData.append("billHoldData", JSON.stringify(billHoldData));
-    formData.append("checkData", JSON.stringify(checkData));
-    formData.append("versionNumber", (report.version + 1).toString());
-
-    submit(formData, {
-      method: "post",
-      action: `/report/create?date=${reportDate}`,
-    });
-  };
-
   const handleShareReport = () => {
     const formData = new FormData();
     formData.append("intent", "create-share-link");
@@ -483,9 +441,6 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
         } else if (actionData.timestamp) {
           setLastSaved(new Date(actionData.timestamp as string));
           setHasUnsavedChanges(false);
-        } else {
-          // For create-version, reload the page
-          window.location.reload();
         }
       } else if (actionData.error) {
         setToast({ type: "error", message: String(actionData.error) });
@@ -507,7 +462,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
     const handleEnterToSave = (event: KeyboardEvent) => {
       if (event.key !== "Enter" || event.repeat || event.isComposing) return;
       if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
-      if (isSaving || isSubmitting || isVersionModalOpen || !!shareUrl) return;
+      if (isSaving || isSubmitting || !!shareUrl) return;
       saveReport();
       event.preventDefault();
     };
@@ -516,7 +471,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
     return () => {
       window.removeEventListener("keydown", handleEnterToSave);
     };
-  }, [isSaving, isSubmitting, isVersionModalOpen, saveReport, shareUrl]);
+  }, [isSaving, isSubmitting, saveReport, shareUrl]);
 
   return (
     <div className="min-h-screen bg-gray-50 px-3 py-4 md:px-4 md:py-5">
@@ -549,21 +504,6 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
               >
                 ดูรายงาน
               </Button>
-              <Button
-                onClick={() => setIsVersionModalOpen(true)}
-                kind="tertiary"
-                size="compact"
-                overrides={{
-                  Root: {
-                    style: {
-                      minHeight: "32px",
-                      fontSize: "14px",
-                    },
-                  },
-                }}
-              >
-                ประวัติเวอร์ชั่น ({versions.length})
-              </Button>
             </div>
           </div>
 
@@ -586,7 +526,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
             <div className="flex flex-wrap gap-2">
               <a
                 href="/"
-                className="inline-flex h-8 items-center justify-center rounded-lg bg-gray-100 px-3 text-sm text-gray-700 transition-colors hover:bg-gray-200"
+                className="inline-flex h-8 min-h-[44px] items-center justify-center rounded-lg bg-gray-100 px-3 text-sm text-gray-700 transition-colors hover:bg-gray-200"
               >
                 กลับหน้าหลัก
               </a>
@@ -633,106 +573,11 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
             <CheckGroup
               items={checkData}
               onChange={setCheckData}
-              availableCustomers={customers}
               availableBanks={banks}
               onGetOrCreateCustomer={handleGetOrCreateCustomer}
             />
           </div>
         </div>
-
-        {/* Version History Modal */}
-        <Modal
-          isOpen={isVersionModalOpen}
-          onClose={() => setIsVersionModalOpen(false)}
-          size={SIZE.large}
-          overrides={{
-            Root: {
-              style: {
-                zIndex: 2000,
-              },
-            },
-          }}
-        >
-          <div className="p-6">
-            <Heading styleLevel={3} className="mb-4">
-              ประวัติเวอร์ชั่น
-            </Heading>
-
-            {versions.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
-                ยังไม่มีประวัติเวอร์ชั่น
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {versions.map((version) => (
-                  <div
-                    key={version.id}
-                    className="bg-gray-50 rounded-lg p-4 border border-gray-200"
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <div className="font-semibold text-lg">
-                          เวอร์ชั่น {version.version_number}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          {format(new Date(version.created_at), "d MMMM yyyy HH:mm:ss", {
-                            locale: th,
-                          })}
-                        </div>
-                      </div>
-                      <Button
-                        size="compact"
-                        onClick={() => {
-                          if (
-                            confirm(
-                              `คุณต้องการกู้คืนเวอร์ชั่น ${version.version_number} ใช่หรือไม่?`
-                            )
-                          ) {
-                            // Restore version
-                            const sales = JSON.parse(version.sales_data);
-                            const billHold = JSON.parse(version.bill_hold_data);
-                            const checks = JSON.parse(version.check_data);
-                            setSalesData(sales);
-                            setBillHoldData(billHold);
-                            setCheckData(checks);
-                            setIsVersionModalOpen(false);
-                            setHasUnsavedChanges(true);
-                          }
-                        }}
-                        overrides={{
-                          Root: {
-                            style: {
-                              minHeight: "32px",
-                              fontSize: "14px",
-                            },
-                          },
-                        }}
-                      >
-                        กู้คืน
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="mt-4 flex justify-end">
-              <Button
-                onClick={() => setIsVersionModalOpen(false)}
-                overrides={{
-                  Root: {
-                    style: {
-                      minHeight: "32px",
-                      fontSize: "14px",
-                    },
-                  },
-                }}
-              >
-                ปิด
-              </Button>
-            </div>
-          </div>
-        </Modal>
 
         {/* Share Link Modal */}
         {shareUrl && (
@@ -829,7 +674,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
         {toast && (
           <div
             className={`fixed bottom-4 right-4 rounded-lg px-4 py-2.5 text-sm text-white shadow-lg ${
-              toast.type === "success" ? "bg-green-500" : "bg-red-500"
+              toast.type === "success" ? "bg-[#16A34A]" : "bg-[#DC2626]"
             }`}
           >
             {toast.message}

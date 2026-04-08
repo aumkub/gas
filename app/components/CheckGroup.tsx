@@ -4,7 +4,6 @@ import { Heading } from "~/components/Heading";
 import { Input } from "~/components/ui/input";
 import { AutoComplete } from "./AutoComplete";
 import { calculateCheckTotal, formatCurrency } from "~/lib/calculations";
-import { THAI_BANKS } from "~/lib/thai-banks";
 
 export interface CheckItem {
   id: string;
@@ -19,7 +18,6 @@ export interface CheckItem {
 interface CheckGroupProps {
   items: CheckItem[];
   onChange: (items: CheckItem[]) => void;
-  availableCustomers: Array<{ id: number; name: string }>;
   availableBanks: Array<{
     id: number;
     bank_name: string;
@@ -32,7 +30,6 @@ interface CheckGroupProps {
 export function CheckGroup({
   items,
   onChange,
-  availableCustomers,
   availableBanks,
   onGetOrCreateCustomer,
 }: CheckGroupProps) {
@@ -61,11 +58,20 @@ export function CheckGroup({
     );
   };
 
-  // Filter banks by selected bank name
-  const getBanksByName = (bankName: string) => {
-    if (!bankName) return [];
-    return availableBanks.filter((b) => b.bank_name === bankName);
+  // Get unique bank names from availableBanks
+  const getUniqueBankNames = () => {
+    const bankNames = new Set(availableBanks.map(b => b.bank_name));
+    return Array.from(bankNames).sort();
   };
+
+  // Get unique owner names from availableBanks
+  const getUniqueOwnerNames = () => {
+    const ownerNames = new Set(availableBanks.map(b => b.owner_name));
+    return Array.from(ownerNames).sort();
+  };
+
+  const uniqueBankNames = getUniqueBankNames();
+  const uniqueOwnerNames = getUniqueOwnerNames();
 
   return (
     <Card
@@ -89,82 +95,23 @@ export function CheckGroup({
             className="rounded-lg border border-gray-200 p-3"
           >
             <div className="grid grid-cols-2 gap-3 mb-3">
-              {/* Bank Name */}
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  ชื่อธนาคาร
-                </label>
-                <select
-                  value={item.bankName}
-                  onChange={(e) => {
-                    updateItem(item.id, {
-                      bankName: e.target.value,
-                      accountNumber: "", // Reset account number when bank changes
-                    });
-                  }}
-                  className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm"
-                >
-                  <option value="">เลือกธนาคาร</option>
-                  {THAI_BANKS.map((bank) => (
-                    <option key={bank.code} value={bank.name}>
-                      {bank.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Account Number */}
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  เลขบัญชี
-                </label>
-                <AutoComplete
-                  items={getBanksByName(item.bankName)}
-                  itemToString={(b) => b.account_number}
-                  onInputValueChange={(value) => {
-                    updateItem(item.id, {
-                      accountNumber: value,
-                    });
-                  }}
-                  filterItem={(bank, query) =>
-                    bank.account_number.includes(query) ||
-                    bank.owner_name.toLowerCase().includes(query.toLowerCase())
-                  }
-                  onSelect={(bank) => {
-                    updateItem(item.id, {
-                      accountNumber: bank.account_number,
-                    });
-                  }}
-                  placeholder={
-                    item.bankName
-                      ? "พิมพ์เลขบัญชีหรือชื่อเจ้าของ"
-                      : "เลือกธนาคารก่อน"
-                  }
-                  disabled={!item.bankName}
-                  initialValue={item.accountNumber}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 mb-3">
               {/* Customer Name */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
                   ชื่อลูกค้า
                 </label>
                 <AutoComplete
-                  items={availableCustomers}
-                  itemToString={(c) => c.name}
+                  items={uniqueOwnerNames}
+                  itemToString={(name) => name}
                   onInputValueChange={(value) => {
                     updateItem(item.id, {
                       customerId: null,
                       customerName: value,
                     });
                   }}
-                  onSelect={(c) => {
+                  onSelect={(name) => {
                     updateItem(item.id, {
-                      customerId: c.id,
-                      customerName: c.name,
+                      customerName: name,
                     });
                   }}
                   placeholder="พิมพ์หรือเลือกชื่อลูกค้า"
@@ -194,7 +141,76 @@ export function CheckGroup({
                   className="h-10 px-3 text-sm"
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              {/* Bank Name */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  ชื่อธนาคาร
+                </label>
+                <select
+                  value={item.bankName}
+                  onChange={(e) => {
+                    updateItem(item.id, {
+                      bankName: e.target.value,
+                    });
+                  }}
+                  className="h-10 w-full rounded-lg border border-gray-300 !px-2 !text-sm"
+                >
+                  <option value="">เลือกธนาคาร</option>
+                  {uniqueBankNames.map((bankName) => (
+                    <option key={bankName} value={bankName}>
+                      {bankName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Account Number */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  เลขบัญชี
+                </label>
+                <AutoComplete
+                  items={availableBanks}
+                  itemToString={(b) => b.account_number}
+                  renderItem={(b) => {
+                    return (
+                      <div className="flex flex-col">
+                        <span className="font-medium">{b.account_number}</span>
+                        <span className="text-xs text-gray-500">{b.bank_name}</span>
+                        {b.owner_name && (
+                          <span className="text-xs text-gray-500">{b.owner_name}</span>
+                        )}
+                      </div>
+                    );
+                  }}
+                  onInputValueChange={(value) => {
+                    updateItem(item.id, {
+                      accountNumber: value,
+                    });
+                  }}
+                  filterItem={(bank, query) =>
+                    bank.account_number.includes(query) ||
+                    bank.bank_name.toLowerCase().includes(query.toLowerCase()) ||
+                    bank.owner_name.toLowerCase().includes(query.toLowerCase())
+                  }
+                  onSelect={(bank) => {
+                    // Auto-fill all fields from selected bank record
+                    updateItem(item.id, {
+                      bankName: bank.bank_name,
+                      accountNumber: bank.account_number,
+                      customerName: bank.owner_name,
+                    });
+                  }}
+                  placeholder="พิมพ์เลขบัญชี ชื่อธนาคาร หรือชื่อเจ้าของ"
+                  initialValue={item.accountNumber}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mb-3">
               {/* Amount */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">

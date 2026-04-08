@@ -20,6 +20,9 @@ interface AutoCompleteProps<T> {
   isLoading?: boolean;
   clearOnSelect?: boolean;
   initialValue?: string;
+  renderItem?: (item: T) => React.ReactNode;
+  focusTrigger?: number;
+  preventEnter?: boolean;
 }
 
 export function AutoComplete<T>({
@@ -37,6 +40,9 @@ export function AutoComplete<T>({
   isLoading = false,
   clearOnSelect = false,
   initialValue = "",
+  renderItem,
+  focusTrigger,
+  preventEnter = false,
 }: AutoCompleteProps<T>) {
   const [inputValue, setInputValue] = useState(initialValue);
   const [filteredItems, setFilteredItems] = useState<T[]>([]);
@@ -75,7 +81,6 @@ export function AutoComplete<T>({
   const handleSelectItem = (item: T) => {
     const itemString = itemToString(item);
     setInputValue(clearOnSelect ? "" : itemString);
-    onInputValueChange?.(clearOnSelect ? "" : itemString);
     setIsOpen(false);
     onSelect(item);
   };
@@ -108,16 +113,19 @@ export function AutoComplete<T>({
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
+        e.stopPropagation();
         setHighlightedIndex((prev) =>
           prev < filteredItems.length - 1 ? prev + 1 : prev
         );
         break;
       case "ArrowUp":
         e.preventDefault();
+        e.stopPropagation();
         setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
         break;
       case "Enter":
         e.preventDefault();
+        e.stopPropagation();
         if (highlightedIndex >= 0 && filteredItems[highlightedIndex]) {
           handleSelectItem(filteredItems[highlightedIndex]);
         } else if (allowCreate && inputValue.trim()) {
@@ -125,6 +133,8 @@ export function AutoComplete<T>({
         }
         break;
       case "Escape":
+        e.preventDefault();
+        e.stopPropagation();
         setIsOpen(false);
         setHighlightedIndex(-1);
         break;
@@ -136,6 +146,23 @@ export function AutoComplete<T>({
       setIsOpen(true);
     }
   };
+
+  const handleBlur = () => {
+    // Close dropdown when input loses focus
+    setTimeout(() => {
+      setIsOpen(false);
+    }, 150);
+  };
+
+  // Handle focus trigger from parent
+  useEffect(() => {
+    if (focusTrigger && focusTrigger > 0) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+        setIsOpen(true);
+      }, 50);
+    }
+  }, [focusTrigger]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -176,6 +203,7 @@ export function AutoComplete<T>({
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             onFocus={handleFocus}
+            onBlur={handleBlur}
             placeholder={placeholder}
             disabled={disabled || isLoading || isCreating}
           />
@@ -186,7 +214,7 @@ export function AutoComplete<T>({
               disabled={disabled || isLoading || isCreating}
               kind="ghost"
               size="compact"
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0 !text-xs"
             >
               <FontAwesomeIcon icon={faXmark} />
             </Button>
@@ -203,7 +231,7 @@ export function AutoComplete<T>({
       {/* Dropdown */}
       {isOpen && (filteredItems.length > 0 || showCreateOption) && (
         <div
-          className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+          className="absolute z-50 !text-sm w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
           style={{ minWidth: inputRef.current?.offsetWidth || "100%" }}
         >
           {filteredItems.map((item, index) => {
@@ -212,12 +240,12 @@ export function AutoComplete<T>({
               <div
                 key={index}
                 onClick={() => handleSelectItem(item)}
-                className={`px-4 py-3 cursor-pointer text-base border-b border-gray-100 last:border-b-0 ${
+                className={`px-4 py-3 cursor-pointer !text-sm border-b border-gray-100 last:border-b-0 ${
                   isHighlighted ? "bg-blue-50" : "hover:bg-gray-50"
                 }`}
                 style={{ minHeight: "48px", display: "flex", alignItems: "center" }}
               >
-                {itemToString(item)}
+                {renderItem ? renderItem(item) : itemToString(item)}
               </div>
             );
           })}
@@ -225,7 +253,7 @@ export function AutoComplete<T>({
           {showCreateOption && (
             <div
               onClick={handleCreateNew}
-              className="px-4 py-3 cursor-pointer text-base text-blue-600 hover:bg-blue-50 font-medium"
+              className="px-4 py-3 cursor-pointer !text-sm text-blue-600 hover:bg-blue-50 font-medium"
               style={{ minHeight: "48px", display: "flex", alignItems: "center" }}
             >
               {isCreating ? "กำลังเพิ่ม..." : `+ เพิ่ม "${inputValue.trim()}"`}
@@ -236,11 +264,11 @@ export function AutoComplete<T>({
 
       {isOpen && filteredItems.length === 0 && !showCreateOption && (
         <div
-          className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg"
+          className="absolute z-50 !text-sm w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg"
           style={{ minWidth: inputRef.current?.offsetWidth || "100%" }}
         >
           <div
-            className="px-4 py-3 text-base text-gray-500 text-center"
+            className="px-4 py-3 !text-sm text-gray-500 text-center"
             style={{ minHeight: "48px", display: "flex", alignItems: "center", justifyContent: "center" }}
           >
             ไม่พบข้อมูล

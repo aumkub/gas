@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/Card";
 import { Heading } from "~/components/Heading";
@@ -316,12 +316,9 @@ function ProductRow({
   onDuplicate,
   onRemove,
 }: ProductRowProps) {
-  const [selectedPriceIndex, setSelectedPriceIndex] = useState<number | undefined>(
-    undefined
-  );
-
+  const quantityInputRef = useRef<HTMLInputElement>(null);
   const selectedProduct = availableProducts.find((p) => p.id === item.productId);
-  const hasMultiplePrices = (selectedProduct?.prices.length || 0) > 1;
+  const availablePrices = selectedProduct?.prices || [];
 
   return (
     <div className="grid grid-cols-12 items-end gap-2 rounded-lg bg-gray-50 p-2.5">
@@ -330,6 +327,22 @@ function ProductRow({
         <AutoComplete
           items={availableProducts}
           itemToString={(p) => p.name}
+          renderItem={(p) => {
+            const priceList = p.prices.map(pr => {
+              if (pr.price_label) {
+                return `${pr.price} บาท (${pr.price_label})`;
+              }
+              return `${pr.price} บาท`;
+            }).join(", ");
+            return (
+              <div className="flex flex-col">
+                <span className="font-medium">{p.name}</span>
+                {p.prices.length > 0 && (
+                  <span className="text-xs text-gray-500">{priceList}</span>
+                )}
+              </div>
+            );
+          }}
           onInputValueChange={(value) =>
             onUpdate({
               productId: null,
@@ -338,21 +351,12 @@ function ProductRow({
             })
           }
           onSelect={(product) => {
-            const prices = product.prices;
-            if (prices.length === 1) {
-              onProductSelect(product, 0);
-            } else if (prices.length > 1) {
-              // Let user select price from dropdown
-              onProductSelect(product, undefined);
-              setSelectedPriceIndex(undefined);
-            } else {
-              // No prices, just set product name
-              onUpdate({
-                productId: product.id,
-                productName: product.name,
-                price: 0,
-              });
-            }
+            // Just set the product, price selection will be handled by price autocomplete
+            onUpdate({
+              productId: product.id,
+              productName: product.name,
+              price: 0, // Will be set when price is selected
+            });
           }}
           placeholder="พิมพ์หรือเลือกสินค้า"
           initialValue={item.productName}
@@ -361,31 +365,37 @@ function ProductRow({
 
       {/* Price */}
       <div className="col-span-2">
-        {hasMultiplePrices ? (
-          <select
-            value={
-              selectedPriceIndex !== undefined
-                ? selectedProduct!.prices[selectedPriceIndex]?.price
-                : item.price
-            }
-            onChange={(e) => {
-              const index = selectedProduct!.prices.findIndex(
-                (p) => p.price === parseFloat(e.target.value)
-              );
-              setSelectedPriceIndex(index);
-              onProductSelect(selectedProduct!, index);
+        {selectedProduct && availablePrices.length > 0 ? (
+          <AutoComplete
+            items={availablePrices}
+            itemToString={(price) => {
+              // For display in input, show just the number without "บาท"
+              return price.price.toString();
             }}
-            className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm"
-          >
-            <option value="">เลือกราคา</option>
-            {selectedProduct!.prices.map((price, index) => (
-              <option key={price.id} value={price.price}>
-                {price.price_label
-                  ? `${price.price} (${price.price_label})`
-                  : `${price.price} บาท`}
-              </option>
-            ))}
-          </select>
+            renderItem={(price) => {
+              // In dropdown, show price with label if available
+              if (price.price_label) {
+                return `${price.price} (${price.price_label})`;
+              }
+              return `${price.price}`;
+            }}
+            onInputValueChange={(value) => {
+              const price = parseFloat(value) || 0;
+              onUpdate({ price });
+            }}
+            onSelect={(price) => {
+              onUpdate({ price: price.price });
+              onProductSelect(selectedProduct, availablePrices.indexOf(price));
+              // Focus quantity input after selecting price
+              setTimeout(() => {
+                quantityInputRef.current?.focus();
+                quantityInputRef.current?.select();
+              }, 50);
+            }}
+            placeholder="เลือกราคา"
+            initialValue={item.price > 0 ? item.price.toString() : ""}
+            preventEnter={true}
+          />
         ) : (
           <Input
             type="number"
@@ -404,6 +414,7 @@ function ProductRow({
       {/* Quantity */}
       <div className="col-span-2">
         <Input
+          ref={quantityInputRef}
           type="number"
           min="1"
           value={item.quantity}

@@ -142,6 +142,22 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           </div>
         </div>
 
+        {/* Navigation Buttons */}
+        <div className="mb-6 grid grid-cols-2 gap-4">
+          <a
+            href="/products"
+            className="inline-flex !min-h-[44px] h-8 items-center justify-center px-4 bg-white text-sm rounded-lg border border-[#E5E7EB] hover:bg-[#F3F4F6] transition-colors font-medium"
+          >
+            📦 จัดการสินค้า
+          </a>
+          <a
+            href="/banks"
+            className="inline-flex !min-h-[44px] h-8 items-center justify-center px-4 bg-white text-sm rounded-lg border border-[#E5E7EB] hover:bg-[#F3F4F6] transition-colors font-medium"
+          >
+            🏦 จัดการธนาคาร
+          </a>
+        </div>
+
         {/* Calendar Days */}
         <div className="bg-white rounded-lg p-6 border border-[#E5E7EB]">
           {/* Weekday Headers */}
@@ -227,22 +243,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               );
             })}
           </div>
-        </div>
-
-        {/* Navigation Buttons */}
-        <div className="mt-6 grid grid-cols-2 gap-4">
-          <a
-            href="/products"
-            className="inline-flex h-8 items-center justify-center px-4 bg-white text-sm rounded-lg border border-[#E5E7EB] hover:bg-[#F3F4F6] transition-colors font-medium"
-          >
-            📦 จัดการสินค้า
-          </a>
-          <a
-            href="/banks"
-            className="inline-flex h-8 items-center justify-center px-4 bg-white text-sm rounded-lg border border-[#E5E7EB] hover:bg-[#F3F4F6] transition-colors font-medium"
-          >
-            🏦 จัดการธนาคาร
-          </a>
         </div>
 
         {/* Logout Button */}

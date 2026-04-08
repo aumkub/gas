@@ -590,6 +590,26 @@ export async function deleteCheckItemsByReport(
     .run();
 }
 
+export async function getAllChecks(db: D1Database): Promise<Array<{
+  customer_name: string;
+  bank_name: string;
+  account_number: string;
+}>> {
+  const result = await db
+    .prepare(`
+      SELECT DISTINCT
+        c.name as customer_name,
+        ci.bank_name,
+        ci.account_number
+      FROM check_items ci
+      LEFT JOIN customers c ON ci.customer_id = c.id
+      WHERE c.name IS NOT NULL AND c.name != ''
+      ORDER BY c.name ASC
+    `)
+    .all();
+  return result.results || [];
+}
+
 // Shared link functions
 export async function createSharedLink(
   db: D1Database,
