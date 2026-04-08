@@ -9,6 +9,24 @@
 	},
 	"upload_source_maps": true,
 	"vars": {
-		"VALUE_FROM_CLOUDFLARE": "GAS"
-	}
+		"SESSION_SECRET": "your-secret-key-change-in-production",
+		"DEFAULT_USERNAME": "to",
+		"DEFAULT_PASSWORD": "Tonhom2506@"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "acc-gas",
+			"database_id": "71087c9d-4d71-4bd4-8099-666cbaf6578d",
+			"remote": true
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "acc_gas",
+			"id": "3761f775b72e4f9a862709397609e4f4",
+			"preview_id": "3761f775b72e4f9a862709397609e4f4",
+			"remote": true
+		}
+	]
 }
