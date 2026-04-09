@@ -257,7 +257,7 @@ export default function Analytics({ loaderData }: Route.ComponentProps) {
                     type="date"
                     value={customStart}
                     onChange={(e) => setCustomStart(e.target.value)}
-                    className="w-full px-3 !py-0 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3 py-0 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
                 </div>
                 <div className="flex-1">
@@ -268,13 +268,13 @@ export default function Analytics({ loaderData }: Route.ComponentProps) {
                     type="date"
                     value={customEnd}
                     onChange={(e) => setCustomEnd(e.target.value)}
-                    className="w-full px-3 !py-0 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3 py-0 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
                 </div>
                 <div className="flex items-end">
                   <Button
                     onClick={handleDateFilter}
-                    className="!py-3 !min-h-[48px] !max-h-[48px] bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600"
+                    className="inline-flex items-center justify-center h-[48px] min-h-[48px] bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600"
                   >
                     <FontAwesomeIcon icon={faCalendarDays} className="mr-2 h-4 w-4" />
                     กรองข้อมูล

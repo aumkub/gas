@@ -363,7 +363,7 @@ function ProductRow({
               <div className="flex flex-col">
                 <span className="font-medium">{p.name}</span>
                 {p.prices.length > 0 && (
-                  <span className="!text-xs text-gray-500">{priceList}</span>
+                  <span className="text-xs text-gray-500">{priceList}</span>
                 )}
               </div>
             );
@@ -434,7 +434,7 @@ function ProductRow({
             }
             placeholder="0"
             data-invalid={!item.price || item.price <= 0 ? "true" : undefined}
-            className={`h-10 px-3 !text-sm ${(!item.price || item.price <= 0) ? "border-red-500 bg-red-50" : ""}`}
+            className={`h-10 px-3 text-sm ${(!item.price || item.price <= 0) ? "border-red-500 bg-red-50" : ""}`}
           />
         )}
       </div>
@@ -456,7 +456,7 @@ function ProductRow({
 
       {/* Total */}
       <div className="col-span-2">
-        <div className="flex h-[36px] items-center rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium">
+        <div className="flex h-[48px] items-center rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium">
           {formatCurrency(item.total)}
         </div>
       </div>

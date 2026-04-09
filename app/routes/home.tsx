@@ -161,12 +161,12 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative z-10 flex items-start gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform shrink-0">
+              <div className="w-14 h-14 min-w-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform shrink-0">
                 <FontAwesomeIcon icon={faBoxOpen} className="h-6 w-6 text-white" />
               </div>
               <div className="min-w-0">
                 <h3 className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">จัดการสินค้า</h3>
-                <p className="mt-1 !text-sm text-gray-500">เพิ่ม แก้ไข หรือลบสินค้า</p>
+                <p className="mt-1 text-sm text-gray-500">เพิ่ม แก้ไข หรือลบสินค้า</p>
               </div>
             </div>
           </a>
@@ -176,12 +176,12 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-50 to-green-100 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative z-10 flex items-start gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform shrink-0">
+              <div className="w-14 h-14 min-w-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform shrink-0">
                 <FontAwesomeIcon icon={faBuildingColumns} className="h-6 w-6 text-white" />
               </div>
               <div className="min-w-0">
                 <h3 className="text-xl font-bold text-gray-800 group-hover:text-green-600 transition-colors">จัดการธนาคาร</h3>
-                <p className="mt-1 !text-sm text-gray-500">เพิ่ม แก้ไข หรือลบธนาคาร</p>
+                <p className="mt-1 text-sm text-gray-500">เพิ่ม แก้ไข หรือลบธนาคาร</p>
               </div>
             </div>
           </a>
@@ -191,12 +191,12 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-50 to-orange-100 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative z-10 flex items-start gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform shrink-0">
+              <div className="w-14 h-14 min-w-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform shrink-0">
                 <FontAwesomeIcon icon={faUsers} className="h-6 w-6 text-white" />
               </div>
               <div className="min-w-0">
                 <h3 className="text-xl font-bold text-gray-800 group-hover:text-orange-600 transition-colors">จัดการลูกค้า</h3>
-                <p className="mt-1 !text-sm text-gray-500">เพิ่ม แก้ไข หรือลบลูกค้า</p>
+                <p className="mt-1 text-sm text-gray-500">เพิ่ม แก้ไข หรือลบลูกค้า</p>
               </div>
             </div>
           </a>
@@ -205,17 +205,18 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             className="group bg-white rounded-xl p-6 border border-gray-200 hover:border-purple-300 hover:shadow-xl transition-all duration-300 relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-50 to-purple-100 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative z-10 flex items-center gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+            <div className="relative z-10 flex items-start gap-4">
+              <div className="w-14 h-14 min-w-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                 <FontAwesomeIcon icon={faChartLine} className="text-2xl text-white" />
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors">รายงานวิเคราะห์</h3>
-                <p className="mt-1 !text-sm text-gray-500">ดูสถิติและวิเคราะห์การขาย</p>
+                <p className="mt-1 text-sm text-gray-500">ดูสถิติและวิเคราะห์การขาย</p>
               </div>
             </div>
           </a>
         </div>
+   
 
         {/* Month Navigator */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
@@ -296,7 +297,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                                 e.stopPropagation();
                                 handleViewReport(dateStr);
                               }}
-                              className="inline-flex items-center justify-center px-2 !min-h-[30px] !max-h-[30px] bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-md hover:shadow-lg !text-[14px] font-medium"
+                              className="inline-flex items-center justify-center h-[30px] min-h-[30px] px-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-md hover:shadow-lg text-[14px] font-medium"
                               title="ดู"
                             >
                               ดู
@@ -306,14 +307,14 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                                 e.stopPropagation();
                                 handleCreateReport(day);
                               }}
-                              className="inline-flex items-center justify-center px-2 !min-h-[30px] !max-h-[30px] bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg !text-[14px] font-medium"
+                              className="inline-flex items-center justify-center h-[30px] min-h-[30px] px-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg text-[14px] font-medium"
                               title="แก้ไขรายงาน"
                             >
                               แก้ไข
                             </button>
                           </>
                         ) : (
-                          <div className="flex items-center justify-center w-full !min-h-[30px] !max-h-[30px] bg-gray-100 rounded-lg group-hover:bg-gradient-to-r group-hover:from-blue-100 group-hover:to-purple-100 transition-all !text-[14px] font-medium text-gray-500 group-hover:text-blue-500">
+                          <div className="inline-flex items-center justify-center h-[30px] min-h-[30px] px-3 bg-gray-100 rounded-lg group-hover:bg-gradient-to-r group-hover:from-blue-100 group-hover:to-purple-100 transition-all text-[14px] font-medium text-gray-500 group-hover:text-blue-500">
                             ว่าง
                           </div>
                      

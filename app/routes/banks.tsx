@@ -262,14 +262,14 @@ export default function Banks({ loaderData, actionData }: Route.ComponentProps) 
                   isLoading={isSubmitting}
                   kind="primary"
                   size="sm"
-                  className="flex-1 !h-12 rounded-xl"
+                  className="flex-1 h-12 rounded-xl"
                 >
                   เพิ่มบัญชีธนาคาร
                 </Button>
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="inline-flex items-center justify-center !min-h-[48px] px-6 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+                  className="inline-flex items-center justify-center h-[48px] min-h-[48px] px-6 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
                 >
                   ยกเลิก
                 </button>
@@ -385,14 +385,14 @@ export default function Banks({ loaderData, actionData }: Route.ComponentProps) 
                             isLoading={isSubmitting}
                             kind="primary"
                             size="sm"
-                            className="flex-1 !h-12 rounded-xl"
+                            className="flex-1 h-12 rounded-xl"
                           >
                             บันทึก
                           </Button>
                           <button
                             type="button"
                             onClick={() => setEditingBankId(null)}
-                            className="inline-flex items-center justify-center !min-h-[48px] px-6 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+                            className="inline-flex items-center justify-center h-[48px] min-h-[48px] px-6 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
                           >
                             ยกเลิก
                           </button>
@@ -562,7 +562,7 @@ function BankForm({ intent, isSubmitting, actionData, initialData, onCancel }: B
           isLoading={isSubmitting}
           kind="primary"
           size="sm"
-          className="flex-1 !h-12 rounded-xl"
+          className="flex-1 h-12 rounded-xl"
         >
           {intent === "create" ? "เพิ่มบัญชีธนาคาร" : "บันทึก"}
         </Button>
@@ -572,7 +572,7 @@ function BankForm({ intent, isSubmitting, actionData, initialData, onCancel }: B
             onClick={onCancel}
             kind="tertiary"
             size="sm"
-            className="!h-12 px-6 rounded-xl"
+            className="h-12 px-6 rounded-xl"
           >
             ยกเลิก
           </Button>

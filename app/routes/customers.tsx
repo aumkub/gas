@@ -149,14 +149,14 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
               <div className="flex gap-3">
                 <a
                   href="/"
-                  className="inline-flex items-center justify-center gap-2 !min-h-[44px] !max-h-[44px] px-6 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+                  className="inline-flex items-center gap-2 justify-center h-[44px] min-h-[44px] px-6 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
                 >
                   <FontAwesomeIcon icon={faArrowLeft} className="h-5 w-5" />
                   กลับหน้าหลัก
                 </a>
                 <button
                   onClick={() => setShowAddForm(!showAddForm)}
-                  className="inline-flex items-center justify-center gap-2 !min-h-[44px] !max-h-[44px] px-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all shadow-md hover:shadow-lg font-medium"
+                  className="inline-flex items-center gap-2 justify-center h-[44px] min-h-[44px] px-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all shadow-md hover:shadow-lg font-medium"
                 >
                   <FontAwesomeIcon icon={faPlus} className="h-5 w-5" />
                   {showAddForm ? "ปิดฟอร์ม" : "เพิ่มลูกค้า"}
@@ -200,7 +200,7 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
                   type="text"
                   required
                   placeholder="ระบุชื่อลูกค้า"
-                  className="w-full text-lg px-4 !py-4.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full text-lg px-4 py-4.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
               </div>
               <div className="flex gap-3">
@@ -208,14 +208,14 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
                   type="submit"
                   disabled={isSubmitting}
                   isLoading={isSubmitting}
-                  className="inline-flex items-center justify-center flex-1 !min-h-[44px] !max-h-[44px] bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-6 rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
+                  className="inline-flex items-center justify-center h-[44px] min-h-[44px] bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-6 rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
                 >
                   เพิ่มลูกค้า
                 </Button>
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="inline-flex !text-sm items-center justify-center !min-h-[44px] !max-h-[44px] px-6 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+                  className="inline-flex items-center justify-center h-[44px] min-h-[44px] px-6 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
                 >
                   ยกเลิก
                 </button>
@@ -237,7 +237,7 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
               placeholder="ค้นหาลูกค้า..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full !pl-12 !pr-4 !py-1 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent !text-sm"
+              className="w-full px-4 py-1 !pl-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
             />
           </div>
         </div>
@@ -314,14 +314,14 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
                               type="submit"
                               disabled={isSubmitting}
                               isLoading={isSubmitting}
-                              className="inline-flex items-center justify-center !min-h-[36px] !max-h-[36px] bg-green-500 hover:bg-green-600 text-white px-3 rounded-lg"
+                              className="inline-flex items-center justify-center h-[36px] min-h-[36px] bg-green-500 hover:bg-green-600 text-white px-3 rounded-lg"
                             >
                               <FontAwesomeIcon icon={faCheck} className="h-4 w-4" />
                             </Button>
                             <button
                               type="button"
                               onClick={() => setEditingCustomerId(null)}
-                              className="inline-flex items-center justify-center !min-h-[36px] !max-h-[36px] px-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                              className="inline-flex items-center justify-center h-[36px] min-h-[36px] px-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                             >
                               <FontAwesomeIcon icon={faXmark} className="h-4 w-4" />
                             </button>
@@ -352,7 +352,7 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
                             <>
                               <button
                                 onClick={() => setEditingCustomerId(customer.id)}
-                                className="inline-flex items-center justify-center !min-h-[36px] !max-h-[36px] px-3 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                                className="inline-flex items-center justify-center h-[36px] min-h-[36px] px-3 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
                                 title="แก้ไข"
                               >
                                 <FontAwesomeIcon icon={faPen} className="h-4 w-4" />
@@ -375,7 +375,7 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
                                 <input type="hidden" name="id" value={customer.id.toString()} />
                                 <button
                                   type="submit"
-                                  className="inline-flex items-center justify-center !min-h-[36px] !max-h-[36px] px-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                                  className="inline-flex items-center justify-center h-[36px] min-h-[36px] px-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
                                   title="ลบ"
                                 >
                                   <FontAwesomeIcon icon={faTrash} className="h-4 w-4" />

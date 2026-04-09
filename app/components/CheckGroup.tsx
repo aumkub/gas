@@ -154,7 +154,7 @@ export function CheckGroup({
             <div className="grid grid-cols-2 gap-3 mb-1">
               {/* Customer Name */}
               <div>
-                <label className="!mb-2 block !text-sm font-medium text-gray-700">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   ชื่อลูกค้า <span className="text-red-500">*</span>
                 </label>
                 <AutoComplete
@@ -164,7 +164,7 @@ export function CheckGroup({
                     return (
                       <div className="flex flex-col">
                         <span className="font-medium">{b.owner_name || "-"}</span>
-                        <span className="!text-sm text-gray-500">{b.account_number} - {b.bank_name}</span>
+                        <span className="text-sm text-gray-500">{b.account_number} - {b.bank_name}</span>
                       </div>
                     );
                   }}
@@ -216,7 +216,7 @@ export function CheckGroup({
 
               {/* Check Date */}
               <div>
-                <label className="!mb-2 block !text-sm font-medium text-gray-700">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   วันที่บนเช็ค <span className="text-red-500">*</span>
                 </label>
                 <Input
@@ -234,7 +234,7 @@ export function CheckGroup({
             <div className="grid grid-cols-2 gap-3 mb-1">
               {/* Bank Name */}
               <div>
-                <label className="!mb-2 block !text-sm font-medium text-gray-700">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   ชื่อธนาคาร <span className="text-red-500">*</span>
                 </label>
                 <AutoComplete
@@ -258,7 +258,7 @@ export function CheckGroup({
 
               {/* Account Number */}
               <div>
-                <label className="!mb-2 block !text-sm font-medium text-gray-700">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   เลขบัญชี <span className="text-red-500">*</span>
                 </label>
                 <AutoComplete
@@ -304,7 +304,7 @@ export function CheckGroup({
             <div className="grid grid-cols-2 gap-3 mb-1">
               {/* Amount */}
               <div>
-                <label className="!mb-2 block !text-sm font-medium text-gray-700">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   จำนวนเงิน <span className="text-red-500">*</span>
                 </label>
                 <Input

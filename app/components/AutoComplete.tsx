@@ -255,7 +255,7 @@ export function AutoComplete<T>({
               disabled={disabled || isLoading || isCreating}
               kind="ghost"
               size="compact"
-              className="absolute right-2 top-1/2 -translate-y-1/2 !h-6 !w-6 !p-0 !text-sm !min-h-[30px] !max-h-[30px]"
+              className="absolute right-0 top-1/2 -translate-y-1/2 h-[30px] min-h-[30px] !w-5 !text-xs !py-1"
             >
               <FontAwesomeIcon icon={faXmark} />
             </Button>
@@ -266,7 +266,7 @@ export function AutoComplete<T>({
       {/* Dropdown */}
       {isOpen && filteredItems.length > 0 && (
         <div
-          className="absolute z-50 !text-sm w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+          className="absolute z-50 text-sm w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
           style={{ minWidth: inputRef.current?.offsetWidth || "100%" }}
         >
           {filteredItems.map((item, index) => {
@@ -275,7 +275,7 @@ export function AutoComplete<T>({
               <div
                 key={index}
                 onClick={() => handleSelectItem(item)}
-                className={`px-4 py-3 cursor-pointer !text-sm border-b border-gray-100 last:border-b-0 ${
+                className={`px-4 py-3 cursor-pointer text-sm border-b border-gray-100 last:border-b-0 ${
                   isHighlighted ? "bg-blue-50" : "hover:bg-gray-50"
                 }`}
                 style={{ minHeight: "48px", display: "flex", alignItems: "center" }}
@@ -290,11 +290,11 @@ export function AutoComplete<T>({
 
       {isOpen && filteredItems.length === 0 && !showCreateOption && (
         <div
-          className="absolute z-50 !text-sm w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg"
+          className="absolute z-50 text-sm w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg"
           style={{ minWidth: inputRef.current?.offsetWidth || "100%" }}
         >
           <div
-            className="px-4 py-3 !text-sm text-gray-500 text-center"
+            className="px-4 py-3 text-sm text-gray-500 text-center"
             style={{ minHeight: "48px", display: "flex", alignItems: "center", justifyContent: "center" }}
           >
             ไม่พบข้อมูล

@@ -75,16 +75,8 @@ export function ReportSummary({
               {onEdit && (
                 <Button
                   onClick={onEdit}
-                  overrides={{
-                    Root: {
-                      style: {
-                        minHeight: "36px",
-                        fontSize: "14px",
-                        padding: "8px 16px",
-                        flex: 1,
-                      },
-                    },
-                  }}
+                  size="sm"
+                  className="flex-1 whitespace-nowrap"
                 >
                   <FontAwesomeIcon icon={faPenToSquare} className="mr-2 h-4 w-4" />
                   แก้ไขรายงาน
@@ -93,16 +85,8 @@ export function ReportSummary({
               {onShare && (
                 <Button
                   onClick={onShare}
-                  overrides={{
-                    Root: {
-                      style: {
-                        minHeight: "36px",
-                        fontSize: "14px",
-                        padding: "8px 16px",
-                        flex: 1,
-                      },
-                    },
-                  }}
+                  size="sm"
+                  className="flex-1"
                 >
                   <FontAwesomeIcon icon={faShareNodes} className="mr-2 h-4 w-4" />
                   แชร์รายงาน

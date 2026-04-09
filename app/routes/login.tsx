@@ -164,13 +164,7 @@ export default function Login({ loaderData }: Route.ComponentProps) {
             type="submit"
             disabled={isSubmitting}
             isLoading={isSubmitting}
-            overrides={{
-              Root: {
-                style: {
-                  width: "100%",
-                },
-              },
-            }}
+            className="w-full"
           >
             {isSubmitting ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
           </Button>

@@ -185,7 +185,7 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                 </a>
                 <button
                   onClick={() => setShowAddForm(!showAddForm)}
-                  className="!inline-flex !items-center !gap-2 !px-6 !py-3 !bg-gradient-to-r !from-purple-500 !to-blue-500 !text-white !rounded-xl hover:!from-purple-600 hover:!to-blue-600 !transition-all !shadow-md hover:!shadow-lg !font-medium"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all shadow-md hover:shadow-lg font-medium"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -238,14 +238,14 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                 type="submit"
                 disabled={isSubmitting}
                 isLoading={isSubmitting}
-                className="!min-h-auto !max-h-auto !px-6 !py-4 !text-sm !bg-gradient-to-r !from-purple-500 !to-blue-500 hover:!from-purple-600 hover:!to-blue-600 !text-white !rounded-xl !font-medium !shadow-md hover:!shadow-lg !transition-all"
+                className="min-h-[30px] max-h-[30px] bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-500 rounded-xl shadow-md hover:shadow-lg"
               >
                 เพิ่มสินค้า
               </Button>
               <button
                 type="button"
                 onClick={() => setShowAddForm(false)}
-                className="!min-h-auto !max-h-auto !inline-flex !items-center !justify-center !px-6 !py-1.5 !text-sm !bg-gray-100 !text-gray-700 !rounded-xl hover:!bg-gray-200 !transition-colors !font-medium"
+                className="min-h-[30px] max-h-[30px] inline-flex items-center justify-center px-6 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
               >
                 ยกเลิก
               </button>
@@ -306,14 +306,14 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                           type="submit"
                           disabled={isSubmitting}
                           isLoading={isSubmitting}
-                          className="!bg-green-500 hover:!bg-green-600 !text-white !px-3 !py-2 !rounded-lg"
+                          className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg"
                         >
                           บันทึก
                         </Button>
                         <button
                           type="button"
                           onClick={() => setEditingProductId(null)}
-                          className="!min-h-auto !max-h-auto !inline-flex !items-center !justify-center !text-sm !font-medium !px-3 !py-1 !bg-gray-200 !text-gray-700 !rounded-lg hover:!bg-gray-300 !transition-colors"
+                          className="inline-flex items-center justify-center text-sm font-medium px-3 py-1 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                         >
                           ยกเลิก
                         </button>
@@ -325,7 +325,7 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                       <div className="flex gap-1">
                         <button
                           onClick={() => setEditingProductId(product.id)}
-                          className="!inline-flex !items-center !justify-center !min-h-auto !max-h-auto !text-sm !px-2 !py-0 !bg-blue-50 !text-blue-600 !rounded-lg hover:!bg-blue-100 !transition-colors"
+                          className="inline-flex items-center justify-center text-sm px-2 py-0 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
                           title="แก้ไข"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -347,7 +347,7 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                           <input type="hidden" name="id" value={product.id.toString()} />
                           <button
                             type="submit"
-                            className="!inline-flex !items-center !justify-center !min-h-auto !max-h-auto !text-sm !px-2 !py-2 !bg-red-50 !text-red-600 !rounded-lg hover:!bg-red-100 !transition-colors"
+                            className="inline-flex items-center justify-center text-sm px-2 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
                             title="ลบ"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -414,14 +414,14 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                             type="submit"
                             disabled={isSubmitting}
                             isLoading={isSubmitting}
-                            className="!bg-gradient-to-r !from-purple-500 !to-blue-500 hover:!from-purple-600 hover:!to-blue-600 !text-white !px-3 !py-2 !rounded-lg !text-sm !font-medium"
+                            className="min-h-[30px] max-h-[30px] bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium"
                           >
                             เพิ่ม
                           </Button>
                           <button
                             type="button"
                             onClick={() => setAddingPriceProductId(null)}
-                            className="!min-h-auto !max-h-auto !inline-flex !items-center !justify-center !text-sm !font-medium !px-3 !py-2 !bg-gray-200 !text-gray-700 !rounded-lg hover:!bg-gray-300 !transition-colors"
+                            className="min-h-[30px] max-h-[30px] inline-flex items-center justify-center text-sm font-medium px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                           >
                             ยกเลิก
                           </button>
@@ -491,14 +491,14 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                                   type="submit"
                                   disabled={isSubmitting}
                                   isLoading={isSubmitting}
-                                  className="!bg-green-500 hover:!bg-green-600 !text-white !px-3 !py-1 !rounded !text-xs"
+                                  className="min-h-[30px] max-h-[30px] bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs"
                                 >
                                   ✓
                                 </Button>
                                 <button
                                   type="button"
                                   onClick={() => setEditingPriceId(null)}
-                                  className="!min-h-auto !max-h-auto !text-sm !px-3 !py-1.5 !bg-gray-200 !text-gray-700 !rounded hover:!bg-gray-300 !transition-colors"
+                                  className="text-sm px-3 py-1.5 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
                                 >
                                   ✕
                                 </button>
@@ -509,13 +509,13 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                                   {price.price.toLocaleString("th-TH")}
                                 </span>
                                 {price.price_label && (
-                                  <span className="!text-sm !px-2 !py-0.5 bg-purple-100 text-purple-700 rounded-full">
+                                  <span className="text-sm px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
                                     {price.price_label}
                                   </span>
                                 )}
                                 <button
                                   onClick={() => setEditingPriceId(price.id)}
-                                  className="!min-h-auto !max-h-auto !text-sm !p-2 !flex !items-center !justify-center !bg-blue-50 !text-blue-600 !rounded hover:!bg-blue-100 !transition-colors"
+                                  className="text-sm p-2 flex items-center justify-center bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors"
                                   title="แก้ไข"
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -542,7 +542,7 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                                   <input type="hidden" name="id" value={price.id.toString()} />
                                   <button
                                     type="submit"
-                                    className="!min-h-auto !max-h-auto !p-2 !flex !items-center !justify-center !bg-red-50 !text-red-600 !rounded hover:!bg-red-100 !transition-colors"
+                                    className="p-2 flex items-center justify-center bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors"
                                     title="ลบ"
                                   >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -562,7 +562,7 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                   {addingPriceProductId !== product.id && (
                     <button
                       onClick={() => setAddingPriceProductId(product.id)}
-                      className="!mt-auto !w-full !inline-flex !items-center !justify-center !gap-2 !px-3 !py-2 !bg-gradient-to-r !from-purple-50 !to-blue-50 !text-purple-700 !rounded-lg hover:!from-purple-100 hover:!to-blue-100 !transition-colors !text-sm !font-medium !border-2 !border-dashed !border-purple-300"
+                      className="mt-auto w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-50 to-blue-50 text-purple-700 rounded-lg hover:from-purple-100 hover:to-blue-100 transition-colors text-sm font-medium border-2 border-dashed border-purple-300"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

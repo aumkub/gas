@@ -6,7 +6,9 @@ type ButtonKind =
   | "tertiary"
   | "secondary"
   | "ghost"
-  | "destructive";
+  | "destructive"
+  | "success"
+  | "info";
 type ButtonSize = "compact" | "default" | "large" | "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -14,11 +16,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   kind?: ButtonKind;
   size?: ButtonSize;
   isLoading?: boolean;
-  overrides?: unknown;
 }
 
 const baseClass =
-  "inline-flex items-center justify-center font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed rounded-lg !h-6 !min-h-[36px] !text-sm";
+  "inline-flex items-center justify-center font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed rounded-lg";
 
 const kindClass: Record<ButtonKind, string> = {
   primary: "bg-[#2563EB] text-white hover:bg-[#1D4ED8] border-0",
@@ -27,15 +28,17 @@ const kindClass: Record<ButtonKind, string> = {
   secondary: "bg-transparent text-[#111827] border border-[#111827] hover:bg-[#1118270A]",
   ghost: "bg-transparent text-[#4B5563] hover:bg-[#F3F4F6] border-0",
   destructive: "bg-[#DC2626] text-white hover:bg-[#B91C1C] border-0",
+  success: "bg-green-500 text-white hover:bg-green-600 border-0",
+  info: "bg-blue-50 text-blue-600 hover:bg-blue-100 border-0",
 };
 
 const sizeClass: Record<ButtonSize, string> = {
-  compact: "h-8 px-3 text-sm",
-  default: "h-12 px-4 text-base",
-  large: "h-14 px-6 text-lg",
-  sm: "h-8 px-3 text-sm",
-  md: "h-12 px-4 text-base",
-  lg: "h-14 px-6 text-lg",
+  compact: "h-9 min-h-9 px-3 text-sm",
+  default: "h-12 min-h-12 px-4 text-base",
+  large: "h-14 min-h-14 px-6 text-lg",
+  sm: "h-9 min-h-9 px-3 text-sm",
+  md: "h-12 min-h-12 px-4 text-base",
+  lg: "h-14 min-h-14 px-6 text-lg",
 };
 
 export function Button({
@@ -45,7 +48,6 @@ export function Button({
   isLoading = false,
   className = "",
   disabled,
-  overrides: _overrides,
   ...props
 }: ButtonProps) {
   return (
