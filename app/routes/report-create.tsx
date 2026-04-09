@@ -24,6 +24,7 @@ import {
   addProductPrice,
   createSharedLink,
   getAllChecks,
+  hardDeleteReportById,
 } from "~/lib/db";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "~/components/ui/button";
@@ -45,6 +46,7 @@ import {
   faEye,
   faFloppyDisk,
   faHouse,
+  faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
 
 export function meta({}: Route.MetaArgs) {
@@ -284,6 +286,22 @@ export async function action({ context, request }: Route.ActionArgs) {
         return { success: "สร้างลิงก์แชร์เรียบร้อย", shareUrl };
       }
 
+      case "hard-delete-report": {
+        const reportId = Number(formData.get("reportId"));
+        const confirmText = String(formData.get("confirmText") || "").trim();
+
+        if (!reportId) {
+          return { error: "ไม่พบรายงานที่ต้องการลบ" };
+        }
+
+        if (confirmText !== "ตกลง") {
+          return { error: "กรุณาพิมพ์คำว่า 'ตกลง' เพื่อยืนยันการลบถาวร" };
+        }
+
+        await hardDeleteReportById(db, reportId);
+        return redirect("/");
+      }
+
       default:
         return { error: "ไม่พบการกระทำที่ต้องการ" };
     }
@@ -329,6 +347,8 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
   // Share link modal
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   // Initialize data from loader
   useEffect(() => {
@@ -418,6 +438,24 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
     const formData = new FormData();
     formData.append("intent", "create-share-link");
     formData.append("reportId", report.id.toString());
+
+    submit(formData, {
+      method: "post",
+      action: `/report/create?date=${reportDate}`,
+    });
+  };
+
+  const isDeleting =
+    navigation.state === "submitting" &&
+    navigation.formData?.get("intent") === "hard-delete-report";
+
+  const canDelete = deleteConfirmText.trim() === "ตกลง";
+
+  const handleDeleteReport = () => {
+    const formData = new FormData();
+    formData.append("intent", "hard-delete-report");
+    formData.append("reportId", report.id.toString());
+    formData.append("confirmText", deleteConfirmText.trim());
 
     submit(formData, {
       method: "post",
@@ -520,20 +558,20 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
   }, [isSaving, isSubmitting, saveReport, shareUrl]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 px-3 py-4 md:px-4 md:py-5">
+    <div className="min-h-screen bg-linear-to-br from-purple-50 via-white to-blue-50 px-3 py-4 md:px-4 md:py-5">
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="relative mb-4 overflow-hidden rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
-          <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 opacity-60" />
+          <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-linear-to-br from-purple-100 to-blue-100 opacity-60" />
           <div className="mb-3 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="relative z-10">
-              <Heading styleLevel={1} className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              <Heading styleLevel={1} className="bg-linear-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                 <span className="inline-flex items-center gap-2">
                   <FontAwesomeIcon
                     icon={faFileLines}
-                    className="!h-8 !w-8 shrink-0 text-purple-600"
+                    className="h-8! w-8! shrink-0 text-purple-600"
                   />
-                  <span className="!text-2xl">
+                  <span className="text-2xl!">
                     รายงานการขายวันที่{" "}
                     {format(new Date(reportDate), "d MMMM yyyy", { locale: th })}
                   </span>
@@ -548,15 +586,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
                 onClick={() => (window.location.href = `/report/view?date=${reportDate}`)}
                 kind="secondary"
                 size="compact"
-                className="border-0 bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 hover:shadow-md relative z-10"
-                overrides={{
-                  Root: {
-                    style: {
-                      minHeight: "32px",
-                      fontSize: "14px",
-                    },
-                  },
-                }}
+                className="relative z-10 border-0 bg-linear-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 hover:shadow-md"
               >
                 <FontAwesomeIcon icon={faEye} className="mr-2 h-4 w-4" />
                 ดูรายงาน
@@ -583,7 +613,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
             <div className="flex flex-wrap gap-2">
               <a
                 href="/"
-                  className="inline-flex !text-base font-medium items-center justify-center rounded-lg bg-gray-100 px-3 text-sm text-gray-700 transition-colors hover:bg-gray-200"
+                  className="inline-flex items-center justify-center rounded-lg bg-gray-100 px-3 text-base font-medium text-gray-700 transition-colors hover:bg-gray-200"
               >
                 <FontAwesomeIcon icon={faHouse} className="mr-2 h-4 w-4" />
                 กลับหน้าหลัก
@@ -593,15 +623,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
                 disabled={isSaving || isSubmitting}
                 isLoading={isSaving || isSubmitting}
                 size="compact"
-                overrides={{
-                  Root: {
-                    style: {
-                      minHeight: "32px",
-                      fontSize: "14px",
-                    },
-                  },
-                }}
-                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 hover:shadow-md"
+                className="bg-linear-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 hover:shadow-md"
               >
                 <FontAwesomeIcon icon={faFloppyDisk} className="mr-2 h-4 w-4" />
                 บันทึกทันที
@@ -637,6 +659,25 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
               onGetOrCreateCustomer={handleGetOrCreateCustomer}
             />
           </div>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5">
+          <h3 className="text-lg font-semibold text-red-700">โซนอันตราย</h3>
+          <p className="mt-1 text-sm text-red-600">
+            การลบแบบถาวรจะลบข้อมูลรายงานและรายการทั้งหมดของวันที่นี้ทันที และไม่สามารถกู้คืนได้
+          </p>
+          <Button
+            onClick={() => {
+              setDeleteConfirmText("");
+              setIsDeleteModalOpen(true);
+            }}
+            kind="destructive"
+            size="compact"
+            className="mt-4 bg-linear-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 hover:shadow-md"
+          >
+            <FontAwesomeIcon icon={faTrashCan} className="mr-2 h-4 w-4" />
+            ลบรายงาน
+          </Button>
         </div>
 
         {/* Share Link Modal */}
@@ -676,15 +717,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
                     navigator.clipboard.writeText(shareUrl);
                     alert("คัดลอกลิงก์แล้ว");
                   }}
-                  overrides={{
-                    Root: {
-                      style: {
-                        minHeight: "32px",
-                        fontSize: "14px",
-                      },
-                    },
-                  }}
-                  className="bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600"
+                  className="bg-linear-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600"
                 >
                   คัดลอกลิงก์
                 </Button>
@@ -699,15 +732,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
                     )}`;
                     window.open(lineUrl, "_blank");
                   }}
-                  overrides={{
-                    Root: {
-                      style: {
-                        minHeight: "32px",
-                        fontSize: "14px",
-                      },
-                    },
-                  }}
-                  className="bg-gradient-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600"
+                  className="bg-linear-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600"
                 >
                   แชร์ผ่าน LINE
                 </Button>
@@ -716,18 +741,60 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
               <div className="mt-4 flex justify-end">
                 <Button
                   onClick={() => setShareUrl(null)}
-                  overrides={{
-                    Root: {
-                      style: {
-                        minHeight: "32px",
-                        fontSize: "14px",
-                      },
-                    },
-                  }}
                   kind="tertiary"
                   className="hover:bg-gray-200"
                 >
                   ปิด
+                </Button>
+              </div>
+            </div>
+          </Modal>
+        )}
+
+        {isDeleteModalOpen && (
+          <Modal
+            isOpen={isDeleteModalOpen}
+            onClose={() => setIsDeleteModalOpen(false)}
+            size={SIZE.default}
+            overrides={{
+              Root: {
+                style: {
+                  zIndex: 2100,
+                },
+              },
+            }}
+          >
+            <div className="p-6">
+              <Heading styleLevel={3} className="mb-2 text-red-700">
+                ยืนยันการลบรายงานถาวร
+              </Heading>
+              <p className="mb-4 text-sm text-gray-700">
+                พิมพ์คำว่า <span className="font-semibold text-red-700">ตกลง</span> เพื่อยืนยันการลบรายงานวันที่{" "}
+                <span className="font-semibold">{reportDate}</span>
+              </p>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(event) => setDeleteConfirmText(event.target.value)}
+                placeholder="พิมพ์คำว่า ตกลง"
+                className="h-12 w-full rounded-lg border border-red-300 px-3 text-base focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-200"
+              />
+              <div className="mt-4 flex justify-end gap-2">
+                <Button
+                  kind="tertiary"
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  disabled={isDeleting}
+                  className="hover:bg-gray-200"
+                >
+                  ยกเลิก
+                </Button>
+                <Button
+                  kind="destructive"
+                  onClick={handleDeleteReport}
+                  disabled={!canDelete || isDeleting}
+                  className="bg-linear-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700"
+                >
+                  {isDeleting ? "กำลังลบ..." : "ยืนยันลบถาวร"}
                 </Button>
               </div>
             </div>

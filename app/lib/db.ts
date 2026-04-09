@@ -510,6 +510,18 @@ export async function incrementReportVersion(
     .run();
 }
 
+export async function hardDeleteReportById(
+  db: D1Database,
+  reportId: number
+): Promise<void> {
+  await db.prepare("DELETE FROM sales_items WHERE report_id = ?").bind(reportId).run();
+  await db.prepare("DELETE FROM bill_hold_items WHERE report_id = ?").bind(reportId).run();
+  await db.prepare("DELETE FROM check_items WHERE report_id = ?").bind(reportId).run();
+  await db.prepare("DELETE FROM shared_links WHERE report_id = ?").bind(reportId).run();
+  await db.prepare("DELETE FROM report_versions WHERE report_id = ?").bind(reportId).run();
+  await db.prepare("DELETE FROM reports WHERE id = ?").bind(reportId).run();
+}
+
 // Sales items
 export async function getSalesItemsByReport(
   db: D1Database,

@@ -37,7 +37,6 @@ export async function action({ context, request }: Route.ActionArgs) {
         const shareUrl = `${new URL(request.url).origin}/share/${linkId}`;
         return { success: "สร้างลิงก์แชร์เรียบร้อย", shareUrl };
       }
-
       default:
         return { error: "ไม่พบการกระทำที่ต้องการ" };
     }
@@ -156,7 +155,7 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 px-4 py-8">
+    <div className="min-h-screen bg-linear-to-br from-purple-50 via-white to-blue-50 px-4 py-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-4">
           <Button
@@ -195,7 +194,7 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
               }}
             >
               <div className="p-6">
-              <h3 className="mb-4 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-2xl font-semibold text-transparent">
+              <h3 className="mb-4 bg-linear-to-r from-purple-600 to-blue-600 bg-clip-text text-2xl font-semibold text-transparent">
                 แชร์รายงาน
               </h3>
 
@@ -249,13 +248,7 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
                     navigator.clipboard.writeText(shareUrl);
                     alert("คัดลอกลิงก์แล้ว");
                   }}
-                  overrides={{
-                    Root: {
-                      style: {
-                      },
-                    },
-                  }}
-                  className="bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600"
+                  className="bg-linear-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600"
                 >
                   <FontAwesomeIcon icon={faCopy} className="mr-2 h-4 w-4" />
                   คัดลอกลิงก์
@@ -269,13 +262,7 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
                       "_blank"
                     );
                   }}
-                  overrides={{
-                    Root: {
-                      style: {
-                      },
-                    },
-                  }}
-                  className="bg-gradient-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600"
+                  className="bg-linear-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600"
                 >
                   <FontAwesomeIcon icon={faComments} className="mr-2 h-4 w-4" />
                   แชร์ผ่าน LINE
@@ -286,12 +273,6 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
                 <Button
                   onClick={() => setShareUrl(null)}
                   kind="tertiary"
-                  overrides={{
-                    Root: {
-                      style: {
-                      },
-                    },
-                  }}
                   className="hover:bg-gray-200"
                 >
                   <FontAwesomeIcon icon={faXmark} className="mr-2 h-4 w-4" />
@@ -301,6 +282,7 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
               </div>
             </Modal>
         )}
+
       </div>
     </div>
   );
