@@ -474,13 +474,14 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
   }, [isSaving, isSubmitting, saveReport, shareUrl]);
 
   return (
-    <div className="min-h-screen bg-gray-50 px-3 py-4 md:px-4 md:py-5">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 px-3 py-4 md:px-4 md:py-5">
       <div className="mx-auto max-w-6xl">
         {/* Header */}
-        <div className="mb-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="relative mb-4 overflow-hidden rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 opacity-60" />
           <div className="mb-3 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-            <div>
-              <Heading styleLevel={1} className="text-2xl md:text-3xl">
+            <div className="relative z-10">
+              <Heading styleLevel={1} className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-2xl text-transparent md:text-3xl">
                 รายงานการขายวันที่{" "}
                 {format(new Date(reportDate), "d MMMM yyyy", { locale: th })}
               </Heading>
@@ -493,6 +494,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
                 onClick={() => (window.location.href = `/report/view?date=${reportDate}`)}
                 kind="secondary"
                 size="compact"
+                className="border-0 bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 hover:shadow-md relative z-10"
                 overrides={{
                   Root: {
                     style: {
@@ -508,18 +510,18 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
           </div>
 
           {/* Auto-save status */}
-          <div className="flex flex-col gap-3 border-t border-gray-100 pt-3 md:flex-row md:items-center md:justify-between">
+          <div className="relative z-10 flex flex-col gap-3 border-t border-gray-100 pt-3 md:flex-row md:items-center md:justify-between">
             <div className="text-sm">
               {isSaving && (
                 <span className="text-blue-600">กำลังบันทึก...</span>
               )}
               {!isSaving && lastSaved && (
-                <span className="text-green-600">
+                <span className="text-purple-600">
                   บันทึกล่าสุด: {format(lastSaved, "HH:mm:ss น.", { locale: th })}
                 </span>
               )}
               {!isSaving && hasUnsavedChanges && (
-                <span className="text-orange-600 ml-2">มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก</span>
+                <span className="ml-2 text-orange-600">มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก</span>
               )}
             </div>
 
@@ -543,6 +545,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
                     },
                   },
                 }}
+                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 hover:shadow-md"
               >
                 บันทึกทันที
               </Button>
@@ -624,6 +627,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
                       },
                     },
                   }}
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600"
                 >
                   คัดลอกลิงก์
                 </Button>
@@ -646,6 +650,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
                       },
                     },
                   }}
+                  className="bg-gradient-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600"
                 >
                   แชร์ผ่าน LINE
                 </Button>
@@ -662,6 +667,8 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
                       },
                     },
                   }}
+                  kind="tertiary"
+                  className="hover:bg-gray-200"
                 >
                   ปิด
                 </Button>
