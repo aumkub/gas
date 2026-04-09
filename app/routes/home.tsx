@@ -12,6 +12,8 @@ import {
   faChevronRight,
   faHand,
   faRightFromBracket,
+  faChartLine,
+  faFileLines,
 } from "@fortawesome/free-solid-svg-icons";
 
 export function meta({}: Route.MetaArgs) {
@@ -151,7 +153,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         </div>
 
         {/* Quick Actions */}
-        <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <a
             href="/products"
             className="group bg-white rounded-xl p-6 border border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all duration-300 relative overflow-hidden"
@@ -179,6 +181,21 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               <div>
                 <h3 className="text-xl font-bold text-gray-800 group-hover:text-green-600 transition-colors">จัดการธนาคาร</h3>
                 <p className="text-sm text-gray-500">จัดการข้อมูลธนาคาร</p>
+              </div>
+            </div>
+          </a>
+          <a
+            href="/analytics"
+            className="group bg-white rounded-xl p-6 border border-gray-200 hover:border-purple-300 hover:shadow-xl transition-all duration-300 relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-50 to-purple-100 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="relative z-10 flex items-center gap-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <FontAwesomeIcon icon={faChartLine} className="text-2xl text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors">รายงานวิเคราะห์</h3>
+                <p className="text-sm text-gray-500">ดูสถิติและวิเคราะห์การขาย</p>
               </div>
             </div>
           </a>

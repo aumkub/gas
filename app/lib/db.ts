@@ -727,3 +727,131 @@ export async function deleteOldVersions(db: D1Database, reportId: number): Promi
     .bind(reportId, reportId)
     .run();
 }
+
+// Analytics functions
+export async function getDailySalesTotals(
+  db: D1Database,
+  startDate: string,
+  endDate: string
+): Promise<Array<{ date: string; total_sales: number }>> {
+  const result = await db
+    .prepare(`
+      SELECT
+        r.report_date as date,
+        SUM(si.total) as total_sales
+      FROM reports r
+      LEFT JOIN sales_items si ON r.id = si.report_id
+      WHERE r.report_date BETWEEN ? AND ?
+      GROUP BY r.report_date
+      ORDER BY r.report_date ASC
+    `)
+    .bind(startDate, endDate)
+    .all();
+  return result.results || [];
+}
+
+export async function getProductSalesRanking(
+  db: D1Database,
+  startDate: string,
+  endDate: string,
+  limit: number = 10
+): Promise<Array<{ product_name: string; total_quantity: number; total_amount: number }>> {
+  const result = await db
+    .prepare(`
+      SELECT
+        p.name as product_name,
+        SUM(si.quantity) as total_quantity,
+        SUM(si.total) as total_amount
+      FROM sales_items si
+      JOIN reports r ON si.report_id = r.id
+      LEFT JOIN products p ON si.product_id = p.id
+      WHERE r.report_date BETWEEN ? AND ?
+      GROUP BY si.product_id
+      ORDER BY total_amount DESC
+      LIMIT ?
+    `)
+    .bind(startDate, endDate, limit)
+    .all();
+  return result.results || [];
+}
+
+export async function getCustomerSalesRanking(
+  db: D1Database,
+  startDate: string,
+  endDate: string,
+  limit: number = 10
+): Promise<Array<{ customer_name: string; total_amount: number }>> {
+  const result = await db
+    .prepare(`
+      SELECT
+        c.name as customer_name,
+        SUM(si.total) as total_amount
+      FROM sales_items si
+      JOIN reports r ON si.report_id = r.id
+      LEFT JOIN customers c ON si.customer_id = c.id
+      WHERE r.report_date BETWEEN ? AND ?
+      GROUP BY si.customer_id
+      ORDER BY total_amount DESC
+      LIMIT ?
+    `)
+    .bind(startDate, endDate, limit)
+    .all();
+  return result.results || [];
+}
+
+export async function getMonthlySummary(
+  db: D1Database,
+  year: number,
+  month: number
+): Promise<{
+  total_sales: number;
+  total_bill_hold: number;
+  total_checks: number;
+  total_reports: number;
+}> {
+  const salesResult = await db
+    .prepare(`
+      SELECT COALESCE(SUM(si.total), 0) as total_sales
+      FROM sales_items si
+      JOIN reports r ON si.report_id = r.id
+      WHERE strftime('%Y', r.report_date) = ? AND strftime('%m', r.report_date) = ?
+    `)
+    .bind(year.toString(), month.toString().padStart(2, "0"))
+    .first<{ total_sales: number }>();
+
+  const billHoldResult = await db
+    .prepare(`
+      SELECT COALESCE(SUM(bhi.amount), 0) as total_bill_hold
+      FROM bill_hold_items bhi
+      JOIN reports r ON bhi.report_id = r.id
+      WHERE strftime('%Y', r.report_date) = ? AND strftime('%m', r.report_date) = ?
+    `)
+    .bind(year.toString(), month.toString().padStart(2, "0"))
+    .first<{ total_bill_hold: number }>();
+
+  const checksResult = await db
+    .prepare(`
+      SELECT COALESCE(SUM(ci.amount), 0) as total_checks
+      FROM check_items ci
+      JOIN reports r ON ci.report_id = r.id
+      WHERE strftime('%Y', r.report_date) = ? AND strftime('%m', r.report_date) = ?
+    `)
+    .bind(year.toString(), month.toString().padStart(2, "0"))
+    .first<{ total_checks: number }>();
+
+  const reportsResult = await db
+    .prepare(`
+      SELECT COUNT(*) as total_reports
+      FROM reports
+      WHERE strftime('%Y', report_date) = ? AND strftime('%m', report_date) = ?
+    `)
+    .bind(year.toString(), month.toString().padStart(2, "0"))
+    .first<{ total_reports: number }>();
+
+  return {
+    total_sales: salesResult?.total_sales || 0,
+    total_bill_hold: billHoldResult?.total_bill_hold || 0,
+    total_checks: checksResult?.total_checks || 0,
+    total_reports: reportsResult?.total_reports || 0,
+  };
+}

@@ -53,7 +53,7 @@ export function ReportSummary({
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-md p-3 py-4 pb-5">
+      <div className="bg-white rounded-lg shadow-md p-3 pb-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div className="w-full sm:w-auto">
             <Heading styleLevel={1} className="text-xl sm:text-2xl break-words">
