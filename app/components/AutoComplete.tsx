@@ -109,10 +109,12 @@ export function AutoComplete<T>({
   const handleCreateNew = async () => {
     if (!allowCreate || !onCreate || !inputValue.trim()) return;
 
+    const createdValue = inputValue.trim();
     setIsCreating(true);
     try {
-      await onCreate(inputValue.trim());
-      setInputValue("");
+      await onCreate(createdValue);
+      setInputValue(clearOnSelect ? "" : createdValue);
+      onInputValueChange?.(createdValue);
       setIsOpen(false);
     } catch (err) {
       console.error("Failed to create new item:", err);
@@ -219,11 +221,7 @@ export function AutoComplete<T>({
   }, []);
 
   const hasExactMatch = !!findExactMatch(inputValue);
-  const showCreateOption =
-    allowCreate &&
-    !!inputValue.trim() &&
-    !hasExactMatch &&
-    !isCreating;
+  const showCreateOption = false;
 
   return (
     <div className="relative" ref={containerRef}>
@@ -266,7 +264,7 @@ export function AutoComplete<T>({
       </div>
 
       {/* Dropdown */}
-      {isOpen && (filteredItems.length > 0 || showCreateOption) && (
+      {isOpen && filteredItems.length > 0 && (
         <div
           className="absolute z-50 !text-sm w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
           style={{ minWidth: inputRef.current?.offsetWidth || "100%" }}
@@ -287,15 +285,6 @@ export function AutoComplete<T>({
             );
           })}
 
-          {showCreateOption && (
-            <div
-              onClick={handleCreateNew}
-              className="px-4 py-3 cursor-pointer !text-sm text-blue-600 hover:bg-blue-50 font-medium"
-              style={{ minHeight: "48px", display: "flex", alignItems: "center" }}
-            >
-              {isCreating ? "กำลังเพิ่ม..." : `+ เพิ่ม "${inputValue.trim()}"`}
-            </div>
-          )}
         </div>
       )}
 

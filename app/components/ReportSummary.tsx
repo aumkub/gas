@@ -56,18 +56,19 @@ export function ReportSummary({
       <div className="bg-white rounded-lg shadow-md p-3 pb-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div className="w-full sm:w-auto">
-            <Heading styleLevel={1} className="text-xl sm:text-2xl break-words">
+            <Heading styleLevel={1} className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               <span className="inline-flex items-center gap-2">
                 <FontAwesomeIcon
                   icon={faFileLines}
-                  className="h-5 w-5 shrink-0 text-purple-600"
+                  className="!h-8 !w-8 shrink-0 text-purple-600"
                 />
-                <span>
+                <span className="!text-2xl">
                   รายงานการขายวันที่{" "}
                   {format(new Date(reportDate), "d MMMM yyyy", { locale: th })}
                 </span>
               </span>
             </Heading>
+      
           </div>
           {!isReadOnly && (
             <div className="flex gap-2 w-full sm:w-auto">

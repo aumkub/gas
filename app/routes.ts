@@ -6,6 +6,7 @@ export default [
   route("logout", "routes/logout.tsx"),
   route("products", "routes/products.tsx"),
   route("banks", "routes/banks.tsx"),
+  route("customers", "routes/customers.tsx"),
   route("analytics", "routes/analytics.tsx"),
   route("api/customers", "routes/api.customers.tsx"),
   route("report/create", "routes/report-create.tsx"),

@@ -1,5 +1,6 @@
 import type { Route } from "./+types/report-create";
 import { redirect, useLoaderData, useNavigation, useSubmit } from "react-router";
+import type { ShouldRevalidateFunctionArgs } from "react-router";
 import { requireAuth } from "~/lib/session";
 import {
   getReportByDate,
@@ -100,6 +101,22 @@ export async function loader({ context, request }: Route.LoaderArgs) {
     banks,
     allChecks,
   };
+}
+
+export function shouldRevalidate({
+  formMethod,
+  formData,
+  defaultShouldRevalidate,
+}: ShouldRevalidateFunctionArgs) {
+  const isPost = formMethod?.toLowerCase() === "post";
+  const intent = formData?.get("intent");
+
+  // Keep local editing state intact after save for smoother UX.
+  if (isPost && intent === "save") {
+    return false;
+  }
+
+  return defaultShouldRevalidate;
 }
 
 export async function action({ context, request }: Route.ActionArgs) {
@@ -300,6 +317,9 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
   const [salesData, setSalesData] = useState<SalesCustomer[]>([]);
   const [billHoldData, setBillHoldData] = useState<BillHoldItem[]>([]);
   const [checkData, setCheckData] = useState<CheckItem[]>([]);
+  const [availableCustomers, setAvailableCustomers] = useState<Array<{ id: number; name: string }>>(
+    customers.map((customer) => ({ id: customer.id, name: customer.name }))
+  );
 
   // Auto-save state
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -365,6 +385,12 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
     }
   }, [salesItems, billHoldItems, checkItems, isEditing, report.updated_at]);
 
+  useEffect(() => {
+    setAvailableCustomers(
+      customers.map((customer) => ({ id: customer.id, name: customer.name }))
+    );
+  }, [customers]);
+
   const saveReport = useCallback(() => {
     console.log("=== CLIENT SAVE DEBUG ===");
     console.log("Report ID:", report.id);
@@ -412,6 +438,19 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
     }
 
     const data = (await response.json()) as { id: number };
+    const normalizedName = name.trim();
+
+    setAvailableCustomers((prev) => {
+      const exists = prev.some(
+        (customer) =>
+          customer.id === data.id ||
+          customer.name.trim().toLowerCase() === normalizedName.toLowerCase()
+      );
+
+      if (exists) return prev;
+      return [...prev, { id: data.id, name: normalizedName }];
+    });
+
     return data.id;
   };
 
@@ -488,13 +527,13 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
           <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 opacity-60" />
           <div className="mb-3 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="relative z-10">
-              <Heading styleLevel={1} className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-2xl text-transparent md:text-3xl">
+              <Heading styleLevel={1} className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                 <span className="inline-flex items-center gap-2">
                   <FontAwesomeIcon
                     icon={faFileLines}
-                    className="h-6 w-6 shrink-0 text-purple-600"
+                    className="!h-8 !w-8 shrink-0 text-purple-600"
                   />
-                  <span>
+                  <span className="!text-2xl">
                     รายงานการขายวันที่{" "}
                     {format(new Date(reportDate), "d MMMM yyyy", { locale: th })}
                   </span>
@@ -578,7 +617,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
               customers={salesData}
               onChange={setSalesData}
               availableProducts={products}
-              availableCustomers={customers}
+              availableCustomers={availableCustomers}
               onGetOrCreateCustomer={handleGetOrCreateCustomer}
             />
           </div>
@@ -587,7 +626,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
             <BillHoldGroup
               items={billHoldData}
               onChange={setBillHoldData}
-              availableCustomers={customers}
+              availableCustomers={availableCustomers}
               onGetOrCreateCustomer={handleGetOrCreateCustomer}
             />
 

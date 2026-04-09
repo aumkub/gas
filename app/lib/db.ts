@@ -225,6 +225,21 @@ export async function getOrCreateCustomer(
   return createCustomer(db, name);
 }
 
+export async function updateCustomer(
+  db: D1Database,
+  id: number,
+  name: string
+): Promise<void> {
+  await db
+    .prepare("UPDATE customers SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+    .bind(name, id)
+    .run();
+}
+
+export async function deleteCustomer(db: D1Database, id: number): Promise<void> {
+  await db.prepare("DELETE FROM customers WHERE id = ?").bind(id).run();
+}
+
 // Product functions
 export async function getAllProducts(db: D1Database): Promise<Product[]> {
   const result = await db

@@ -14,6 +14,7 @@ import {
   faRightFromBracket,
   faChartLine,
   faFileLines,
+  faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 
 export function meta({}: Route.MetaArgs) {
@@ -153,19 +154,19 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         </div>
 
         {/* Quick Actions */}
-        <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <a
             href="/products"
             className="group bg-white rounded-xl p-6 border border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all duration-300 relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative z-10 flex items-center gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <FontAwesomeIcon icon={faBoxOpen} className="text-2xl text-white" />
+            <div className="relative z-10 flex items-start gap-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform shrink-0">
+                <FontAwesomeIcon icon={faBoxOpen} className="h-6 w-6 text-white" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h3 className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">จัดการสินค้า</h3>
-                <p className="text-sm text-gray-500">เพิ่ม แก้ไข หรือลบสินค้า</p>
+                <p className="mt-1 !text-sm text-gray-500">เพิ่ม แก้ไข หรือลบสินค้า</p>
               </div>
             </div>
           </a>
@@ -174,13 +175,28 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             className="group bg-white rounded-xl p-6 border border-gray-200 hover:border-green-300 hover:shadow-xl transition-all duration-300 relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-50 to-green-100 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative z-10 flex items-center gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <FontAwesomeIcon icon={faBuildingColumns} className="text-2xl text-white" />
+            <div className="relative z-10 flex items-start gap-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform shrink-0">
+                <FontAwesomeIcon icon={faBuildingColumns} className="h-6 w-6 text-white" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h3 className="text-xl font-bold text-gray-800 group-hover:text-green-600 transition-colors">จัดการธนาคาร</h3>
-                <p className="text-sm text-gray-500">จัดการข้อมูลธนาคาร</p>
+                <p className="mt-1 !text-sm text-gray-500">เพิ่ม แก้ไข หรือลบธนาคาร</p>
+              </div>
+            </div>
+          </a>
+          <a
+            href="/customers"
+            className="group bg-white rounded-xl p-6 border border-gray-200 hover:border-orange-300 hover:shadow-xl transition-all duration-300 relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-50 to-orange-100 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="relative z-10 flex items-start gap-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform shrink-0">
+                <FontAwesomeIcon icon={faUsers} className="h-6 w-6 text-white" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-xl font-bold text-gray-800 group-hover:text-orange-600 transition-colors">จัดการลูกค้า</h3>
+                <p className="mt-1 !text-sm text-gray-500">เพิ่ม แก้ไข หรือลบลูกค้า</p>
               </div>
             </div>
           </a>
@@ -195,7 +211,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors">รายงานวิเคราะห์</h3>
-                <p className="text-sm text-gray-500">ดูสถิติและวิเคราะห์การขาย</p>
+                <p className="mt-1 !text-sm text-gray-500">ดูสถิติและวิเคราะห์การขาย</p>
               </div>
             </div>
           </a>
@@ -265,11 +281,11 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                       <div className={`text-xl md:text-2xl font-bold ${isCurrentDay ? "text-blue-600" : hasReport ? "text-green-600" : "text-gray-700"}`}>
                         {format(day, "d", { locale: th })}
                       </div>
-                      {hasReport && (
-                        <div className="mt-1 flex justify-center">
-                          <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                        </div>
-                      )}
+                      <div className="mt-1 flex justify-center min-h-[8px]">
+                        <span
+                          className={`inline-block w-2 h-2 rounded-full ${hasReport ? "bg-green-500 animate-pulse" : "invisible"}`}
+                        ></span>
+                      </div>
                     </div>
                     {isCurrentMonth && (
                       <div className="flex justify-center gap-1 md:gap-2 mt-2">
