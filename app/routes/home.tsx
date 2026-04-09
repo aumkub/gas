@@ -113,64 +113,112 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const weekDays = ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."];
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] px-4 py-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="max-w-6xl mx-auto px-4 py-8 md:px-6">
         {/* Header */}
-        <div className="bg-white rounded-lg p-6 mb-6 border border-[#E5E7EB]">
-          <h1 className="text-4xl font-bold text-center mb-2">รายงานการขายประจำวัน</h1>
-          <p className="text-[#4B5563] text-center">
-            ยินดีต้อนรับ, {user.username}
-          </p>
+        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-gray-100 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full -mr-32 -mt-32 opacity-50"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-br from-green-100 to-blue-100 rounded-full -ml-24 -mb-24 opacity-50"></div>
+          <div className="relative z-10">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
+                  รายงานการขายประจำวัน
+                </h1>
+                <p className="text-gray-600 text-lg flex items-center gap-2">
+                  <span className="text-2xl">👋</span>
+                  ยินดีต้อนรับ, <span className="font-semibold text-blue-600">{user.username}</span>
+                </p>
+              </div>
+              <a
+                href="/logout"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all shadow-md hover:shadow-lg font-medium"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                ออกจากระบบ
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <a
+            href="/products"
+            className="group bg-white rounded-xl p-6 border border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all duration-300 relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="relative z-10 flex items-center gap-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-2xl shadow-lg group-hover:scale-110 transition-transform">
+                📦
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">จัดการสินค้า</h3>
+                <p className="text-sm text-gray-500">เพิ่ม แก้ไข หรือลบสินค้า</p>
+              </div>
+            </div>
+          </a>
+          <a
+            href="/banks"
+            className="group bg-white rounded-xl p-6 border border-gray-200 hover:border-green-300 hover:shadow-xl transition-all duration-300 relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-50 to-green-100 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="relative z-10 flex items-center gap-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center text-2xl shadow-lg group-hover:scale-110 transition-transform">
+                🏦
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 group-hover:text-green-600 transition-colors">จัดการธนาคาร</h3>
+                <p className="text-sm text-gray-500">จัดการข้อมูลธนาคาร</p>
+              </div>
+            </div>
+          </a>
         </div>
 
         {/* Month Navigator */}
-        <div className="bg-white rounded-lg p-6 mb-6 border border-[#E5E7EB]">
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
           <div className="flex items-center justify-between">
             <button
               onClick={goToPrevMonth}
-              className="inline-flex h-8 items-center px-4 bg-[#2563EB] text-white text-sm rounded-lg hover:bg-[#1D4ED8] transition-colors font-medium"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg font-medium"
             >
-              ◀ เดือนก่อนหน้า
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              เดือนก่อนหน้า
             </button>
-            <h2 className="text-2xl font-semibold">{getMonthYearName()}</h2>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {getMonthYearName()}
+            </h2>
             <button
               onClick={goToNextMonth}
-              className="inline-flex h-8 items-center px-4 bg-[#2563EB] text-white text-sm rounded-lg hover:bg-[#1D4ED8] transition-colors font-medium"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg font-medium"
             >
-              เดือนถัดไป ▶
+              เดือนถัดไป
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </button>
           </div>
         </div>
 
-        {/* Navigation Buttons */}
-        <div className="mb-6 grid grid-cols-2 gap-4">
-          <a
-            href="/products"
-            className="inline-flex !min-h-[44px] h-8 items-center justify-center px-4 bg-white text-sm rounded-lg border border-[#E5E7EB] hover:bg-[#F3F4F6] transition-colors font-medium"
-          >
-            📦 จัดการสินค้า
-          </a>
-          <a
-            href="/banks"
-            className="inline-flex !min-h-[44px] h-8 items-center justify-center px-4 bg-white text-sm rounded-lg border border-[#E5E7EB] hover:bg-[#F3F4F6] transition-colors font-medium"
-          >
-            🏦 จัดการธนาคาร
-          </a>
-        </div>
-
-        {/* Calendar Days */}
-        <div className="bg-white rounded-lg p-6 border border-[#E5E7EB]">
+        {/* Calendar */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
           {/* Weekday Headers */}
           <div className="grid grid-cols-7 gap-2 mb-4">
             {weekDays.map((day) => (
-              <div key={day} className="text-center font-semibold text-lg text-[#4B5563] py-2">
-                {day}
+              <div key={day} className="text-center">
+                <div className="inline-block px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                  <span className="font-bold text-blue-700 text-sm">{day}</span>
+                </div>
               </div>
             ))}
           </div>
 
           {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-2" id="calendar-days">
+          <div className="grid grid-cols-7 gap-2 md:gap-3" id="calendar-days">
             {allDays.map((day) => {
               const dateStr = formatDate(day);
               const hasReport = reportDates.has(dateStr);
@@ -181,30 +229,30 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 <div
                   key={dateStr}
                   id={`day-${dateStr}`}
-                  className={`aspect-square p-2 rounded-lg border-2 transition-all cursor-pointer ${
+                  className={`aspect-square md:aspect-auto md:h-28 p-2 md:p-3 rounded-xl border-2 transition-all duration-300 cursor-pointer relative overflow-hidden group ${
                     !isCurrentMonth
-                      ? "opacity-30 bg-gray-50 border-gray-200"
+                      ? "opacity-40 bg-gray-50 border-gray-200"
                       : isCurrentDay
-                      ? "border-[#2563EB] bg-[#2563EB]/10"
+                      ? "border-blue-400 bg-gradient-to-br from-blue-50 to-purple-50 shadow-lg shadow-blue-200"
                       : hasReport
-                      ? "border-[#16A34A] bg-[#16A34A]/10 hover:border-[#15803D] hover:bg-[#16A34A]/20"
-                      : "border-[#E5E7EB] hover:border-[#D1D5DB] hover:bg-[#F3F4F6]"
+                      ? "border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 hover:border-green-400 hover:shadow-lg hover:shadow-green-200"
+                      : "border-gray-200 hover:border-blue-300 hover:bg-gradient-to-br hover:from-blue-50 hover:to-purple-50 hover:shadow-md"
                   }`}
                   onClick={() => isCurrentMonth && handleCreateReport(day)}
                 >
                   <div className="flex flex-col h-full justify-between">
                     <div className="text-center">
-                      <div className={`text-lg font-semibold ${isCurrentDay ? "text-[#2563EB]" : ""}`}>
+                      <div className={`text-xl md:text-2xl font-bold ${isCurrentDay ? "text-blue-600" : hasReport ? "text-green-600" : "text-gray-700"}`}>
                         {format(day, "d", { locale: th })}
                       </div>
                       {hasReport && (
-                        <div className="mt-1 text-center">
-                          <span className="inline-block w-2 h-2 bg-[#16A34A] rounded-full"></span>
+                        <div className="mt-1 flex justify-center">
+                          <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                         </div>
                       )}
                     </div>
                     {isCurrentMonth && (
-                      <div className="flex justify-center gap-1">
+                      <div className="flex justify-center gap-1 md:gap-2 mt-2">
                         {hasReport ? (
                           <>
                             <button
@@ -212,29 +260,27 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                                 e.stopPropagation();
                                 handleViewReport(dateStr);
                               }}
-                              className="inline-flex h-8 items-center justify-center px-2 bg-[#16A34A] text-white text-sm rounded hover:bg-[#15803D] transition-colors"
-                              title="ดูรายงาน"
+                              className="inline-flex items-center justify-center px-2 !min-h-[30px] !max-h-[30px] bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-md hover:shadow-lg !text-[14px] font-medium"
+                              title="ดู"
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
+                              ดู
                             </button>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleCreateReport(day);
                               }}
-                              className="inline-flex h-8 items-center justify-center px-2 bg-[#2563EB] text-white text-sm rounded hover:bg-[#1D4ED8] transition-colors"
+                              className="inline-flex items-center justify-center px-2 !min-h-[30px] !max-h-[30px] bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg !text-[14px] font-medium"
                               title="แก้ไขรายงาน"
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
+                              แก้ไข
                             </button>
                           </>
                         ) : (
-                          <span className="text-xs text-[#9CA3AF]">+</span>
+                          <div className="flex items-center justify-center w-full !min-h-[30px] !max-h-[30px] bg-gray-100 rounded-lg group-hover:bg-gradient-to-r group-hover:from-blue-100 group-hover:to-purple-100 transition-all !text-[14px] font-medium text-gray-500 group-hover:text-blue-500">
+                            ว่าง
+                          </div>
+                     
                         )}
                       </div>
                     )}
@@ -243,16 +289,22 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               );
             })}
           </div>
-        </div>
 
-        {/* Logout Button */}
-        <div className="mt-6 text-center">
-          <a
-            href="/logout"
-            className="inline-flex h-8 items-center px-4 bg-[#DC2626] text-white text-sm rounded-lg hover:bg-[#B91C1C] transition-colors font-medium"
-          >
-            ออกจากระบบ
-          </a>
+          {/* Legend */}
+          <div className="mt-6 flex flex-wrap gap-4 justify-center text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-400"></div>
+              <span className="text-gray-600">วันนี้</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300"></div>
+              <span className="text-gray-600">มีรายงาน</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-lg bg-gray-50 border-2 border-gray-200"></div>
+              <span className="text-gray-600">ว่าง</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

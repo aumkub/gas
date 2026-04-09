@@ -12,6 +12,22 @@ export interface BillHoldItem {
   amount: number;
 }
 
+// Validation function
+export const isBillHoldItemValid = (item: BillHoldItem): boolean => {
+  return !!(
+    item.customerName?.trim() &&
+    item.amount > 0
+  );
+};
+
+// Get validation errors
+export const getBillHoldItemErrors = (item: BillHoldItem): string[] => {
+  const errors: string[] = [];
+  if (!item.customerName?.trim()) errors.push("ชื่อลูกค้า");
+  if (!item.amount || item.amount <= 0) errors.push("จำนวนเงิน");
+  return errors;
+};
+
 interface BillHoldGroupProps {
   items: BillHoldItem[];
   onChange: (items: BillHoldItem[]) => void;
@@ -59,21 +75,23 @@ export function BillHoldGroup({
       }}
     >
       <Heading styleLevel={3} className="mb-3 text-xl">
-        กลุ่มบิลฝากเก็บ
+        บิลฝากเก็บ
       </Heading>
 
-      <div className="space-y-3">
-        {items.map((item) => (
+      <div className="space-y-2">
+        {items.map((item, index) => (
           <div
             key={item.id}
-            className="rounded-lg border border-gray-200 p-3"
+            className="rounded-lg border border-gray-200 p-2"
           >
-            <div className="grid grid-cols-12 gap-3 items-end">
+            <div className="grid grid-cols-12 gap-2 items-end">
               {/* Customer Name */}
               <div className="col-span-6">
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  ชื่อลูกค้า
-                </label>
+                {index === 0 && (
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    ชื่อลูกค้า <span className="text-red-500">*</span>
+                  </label>
+                )}
                 <AutoComplete
                   items={availableCustomers}
                   itemToString={(c) => c.name}
@@ -89,7 +107,7 @@ export function BillHoldGroup({
                       customerName: c.name,
                     });
                   }}
-                  placeholder="พิมพ์หรือเลือกชื่อลูกค้า"
+                  placeholder=""
                   allowCreate
                   onCreate={async (name) => {
                     const id = await onGetOrCreateCustomer(name);
@@ -99,14 +117,17 @@ export function BillHoldGroup({
                     });
                   }}
                   initialValue={item.customerName}
+                  error={!item.customerName?.trim() ? "กรุณากรอกชื่อลูกค้า" : undefined}
                 />
               </div>
 
               {/* Amount */}
               <div className="col-span-4">
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  จำนวนเงิน
-                </label>
+                {index === 0 && (
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    จำนวนเงิน <span className="text-red-500">*</span>
+                  </label>
+                )}
                 <Input
                   type="number"
                   step="0.01"
@@ -118,7 +139,8 @@ export function BillHoldGroup({
                     })
                   }
                   placeholder="0.00"
-                  className="h-10 px-3 text-sm"
+                  data-invalid={!item.amount || item.amount <= 0 ? "true" : undefined}
+                  className={`h-9 px-3 text-sm ${(!item.amount || item.amount <= 0) ? 'border-red-500 bg-red-50' : ''}`}
                 />
               </div>
 
@@ -133,7 +155,7 @@ export function BillHoldGroup({
         ))}
 
         {/* Add Item Button */}
-        <Button onClick={addItem} size="compact" className="w-full">
+        <Button onClick={addItem} size="compact" className="w-full mt-2">
           + เพิ่มรายการบิลฝากเก็บ
         </Button>
       </div>
@@ -141,7 +163,7 @@ export function BillHoldGroup({
       {/* Group Total */}
       <div className="mt-4 rounded-lg border border-orange-200 bg-orange-50 px-4 py-2">
         <div className="text-right text-base font-semibold text-orange-800">
-          ยอดรวมกลุ่มบิลฝากเก็บ: {formatCurrency(groupTotal)}
+          ยอดรวมบิลฝากเก็บ: {formatCurrency(groupTotal)}
         </div>
       </div>
     </Card>

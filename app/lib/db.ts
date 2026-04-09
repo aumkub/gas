@@ -392,6 +392,44 @@ export async function deleteBank(db: D1Database, id: number): Promise<void> {
   await db.prepare("DELETE FROM banks WHERE id = ?").bind(id).run();
 }
 
+export async function upsertBankByAccountNumber(
+  db: D1Database,
+  bankName: string,
+  accountNumber: string,
+  ownerName: string
+): Promise<void> {
+  const normalizedBankName = bankName.trim();
+  const normalizedAccountNumber = accountNumber.trim();
+  const normalizedOwnerName = ownerName.trim();
+
+  if (!normalizedBankName || !normalizedAccountNumber || !normalizedOwnerName) {
+    return;
+  }
+
+  const existing = await db
+    .prepare("SELECT id FROM banks WHERE account_number = ?")
+    .bind(normalizedAccountNumber)
+    .first<{ id: number }>();
+
+  if (existing?.id) {
+    await updateBank(
+      db,
+      existing.id,
+      normalizedBankName,
+      normalizedAccountNumber,
+      normalizedOwnerName
+    );
+    return;
+  }
+
+  await createBank(
+    db,
+    normalizedBankName,
+    normalizedAccountNumber,
+    normalizedOwnerName
+  );
+}
+
 // Report functions
 export async function getReportsByMonth(
   db: D1Database,

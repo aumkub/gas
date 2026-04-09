@@ -11,7 +11,8 @@ import {
 import { ReportSummary } from "~/components/ReportSummary";
 import { Button } from "~/components/ui/button";
 import { Modal, SIZE } from "~/components/ui/modal";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { QRCodeSVG } from "qrcode.react";
 
 export async function action({ context, request }: Route.ActionArgs) {
   const { user } = await requireAuth(request, context.cloudflare.env.DB);
@@ -88,6 +89,7 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
   const navigation = useNavigation();
   const submit = useSubmit();
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const qrCodeRef = useRef<SVGSVGElement>(null);
 
   const handleShare = () => {
     const formData = new FormData();
@@ -98,6 +100,31 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
       method: "post",
       action: `/report/view?date=${reportDate}`,
     });
+  };
+
+  const handleDownloadQRCode = () => {
+    if (!qrCodeRef.current) return;
+
+    const svg = qrCodeRef.current;
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+
+    img.onload = () => {
+      canvas.width = 200;
+      canvas.height = 200;
+      ctx?.drawImage(img, 0, 0);
+      const pngFile = canvas.toDataURL("image/png");
+      const downloadLink = document.createElement("a");
+      downloadLink.href = pngFile;
+      downloadLink.download = `qrcode-${reportDate}.png`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    };
+
+    img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
   };
 
   // Handle action response
@@ -153,6 +180,38 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
                   className="w-full h-[42px] px-[14px] text-sm border border-[#E2E8F0] rounded-lg bg-[#F8FAFC]"
                 />
               </div>
+
+              {shareUrl && (
+                <div className="mb-4">
+                  {/* <label className="block mb-2 font-medium text-lg">
+                    QR Code:
+                  </label> */}
+                  <div className="flex justify-center mb-2">
+                    <div className="border border-gray-300 p-0 mb-1 bg-white">
+                      <QRCodeSVG
+                        ref={qrCodeRef}
+                        value={shareUrl}
+                        size={200}
+                        level={"M"}
+                        includeMargin={true}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-center">
+                    {/* <Button
+                      onClick={handleDownloadQRCode}
+                      overrides={{
+                        Root: {
+                          style: {
+                          },
+                        },
+                      }}
+                    >
+                      ดาวน์โหลด QR Code
+                    </Button> */}
+                  </div>
+                </div>
+              )}
 
               <div className="flex gap-2 justify-end">
                 <Button

@@ -113,231 +113,60 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<(Product & { prices: ProductPrice[] }) | null>(null);
-  const [selectedPrice, setSelectedPrice] = useState<ProductPrice | null>(null);
-
-  const handleEditProduct = (product: Product & { prices: ProductPrice[] }) => {
-    setSelectedProduct(product);
-    setIsEditModalOpen(true);
-  };
-
-  const handleAddPrice = (product: Product & { prices: ProductPrice[] }) => {
-    setSelectedProduct(product);
-    setIsPriceModalOpen(true);
-    setSelectedPrice(null);
-  };
-
-  const handleEditPrice = (product: Product & { prices: ProductPrice[] }, price: ProductPrice) => {
-    setSelectedProduct(product);
-    setSelectedPrice(price);
-    setIsPriceModalOpen(true);
-  };
-
-  const handleDeleteProduct = async (id: number) => {
-    if (!confirm("คุณต้องการลบสินค้านี้ใช่หรือไม่?")) return;
-
-    const formData = new FormData();
-    formData.append("intent", "delete");
-    formData.append("id", id.toString());
-
-    await fetch("/products", {
-      method: "POST",
-      body: formData,
-    });
-
-    window.location.reload();
-  };
-
-  const handleDeletePrice = async (priceId: number) => {
-    if (!confirm("คุณต้องการลบราคานี้ใช่หรือไม่?")) return;
-
-    const formData = new FormData();
-    formData.append("intent", "delete-price");
-    formData.append("id", priceId.toString());
-
-    await fetch("/products", {
-      method: "POST",
-      body: formData,
-    });
-
-    window.location.reload();
-  };
+  const [editingProductId, setEditingProductId] = useState<number | null>(null);
+  const [addingPriceProductId, setAddingPriceProductId] = useState<number | null>(null);
+  const [editingPriceId, setEditingPriceId] = useState<number | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] px-4 py-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+      <div className="max-w-6xl mx-auto px-4 py-8 md:px-6">
         {/* Header */}
-        <div className="bg-white rounded-lg p-6 mb-6 border border-[#E2E8F0]">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <Heading styleLevel={1}>จัดการสินค้า</Heading>
-              <p className="text-[#64748B] mt-2">ยินดีต้อนรับ, {user.username}</p>
+        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-gray-100 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full -mr-32 -mt-32 opacity-50"></div>
+          <div className="relative z-10">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-3">
+                  จัดการสินค้า
+                </h1>
+                <p className="text-gray-600 text-lg flex items-center gap-2">
+                  <span className="text-2xl">📦</span>
+                  ยินดีต้อนรับ, <span className="font-semibold text-purple-600">{user.username}</span>
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <a
+                  href="/"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  กลับหน้าหลัก
+                </a>
+                <button
+                  onClick={() => setShowAddForm(!showAddForm)}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all shadow-md hover:shadow-lg font-medium"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  {showAddForm ? "ปิดฟอร์ม" : "เพิ่มสินค้า"}
+                </button>
+              </div>
             </div>
-            <Button
-              onClick={() => setIsCreateModalOpen(true)}
-              overrides={{
-                Root: {
-                  style: {
-                  },
-                },
-              }}
-            >
-              + เพิ่มสินค้า
-            </Button>
           </div>
-          <a
-            href="/"
-            className="inline-block px-4 py-2 bg-[#64748B] text-white rounded-lg hover:bg-[#475569] transition-colors"
-          >
-            ← กลับหน้าหลัก
-          </a>
         </div>
 
-        {/* Products List */}
-        <div className="space-y-4">
-          {products.length === 0 ? (
-            <div className="bg-white rounded-lg p-8 text-center text-[#64748B] border border-[#E2E8F0]">
-              ยังไม่มีสินค้า คลิก "เพิ่มสินค้า" เพื่อเริ่มต้น
-            </div>
-          ) : (
-            products.map((product) => (
-              <Card
-                key={product.id}
-                overrides={{
-                  Root: {
-                    style: {
-                      padding: "24px",
-                    },
-                  },
-                }}
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-2xl font-semibold mb-2">{product.name}</h3>
-                    <p className="text-[#64748B]">
-                      {product.prices.length === 0
-                        ? "ยังไม่มีราคา"
-                        : `${product.prices.length} ราคา`}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => handleEditProduct(product)}
-                      overrides={{
-                        Root: {
-                          style: {
-                          },
-                        },
-                      }}
-                    >
-                      แก้ชื่อ
-                    </Button>
-                    <Button
-                      onClick={() => handleAddPrice(product)}
-                      overrides={{
-                        Root: {
-                          style: {
-                          },
-                        },
-                      }}
-                    >
-                      + เพิ่มราคา
-                    </Button>
-                    <Button
-                      onClick={() => handleDeleteProduct(product.id)}
-                      kind="destructive"
-                      overrides={{
-                        Root: {
-                          style: {
-                          },
-                        },
-                      }}
-                    >
-                      ลบ
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Prices */}
-                {product.prices.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-lg font-medium">ราคา:</h4>
-                    {product.prices.map((price) => (
-                      <div
-                        key={price.id}
-                        className="flex items-center justify-between bg-[#F8FAFC] rounded-lg px-4 py-3"
-                      >
-                        <div className="flex-1">
-                          <span className="text-xl font-medium">
-                            {price.price.toLocaleString("th-TH")} บาท
-                          </span>
-                          {price.price_label && (
-                            <span className="ml-3 text-[#64748B]">
-                              ({price.price_label})
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => handleEditPrice(product, price)}
-                            size="sm"
-                            overrides={{
-                              Root: {
-                                style: {
-                                },
-                              },
-                            }}
-                          >
-                            แก้ไข
-                          </Button>
-                          <Button
-                            onClick={() => handleDeletePrice(price.id)}
-                            kind="ghost"
-                            size="sm"
-                            overrides={{
-                              Root: {
-                                style: {
-                                },
-                              },
-                            }}
-                          >
-                            ลบ
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Card>
-            ))
-          )}
-        </div>
-
-        {/* Create Product Modal */}
-        <Modal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          size={SIZE.default}
-          overrides={{
-            Root: {
-              style: {
-                zIndex: 2000,
-              },
-            },
-          }}
-        >
-          <div className="p-6">
-            <Heading styleLevel={3} className="mb-4">
-              เพิ่มสินค้าใหม่
-            </Heading>
+        {/* Add Product Form */}
+        {showAddForm && (
+          <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100 animate-slideDown">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">เพิ่มสินค้าใหม่</h2>
             <Form method="post" className="space-y-4">
               <input type="hidden" name="intent" value="create" />
-
               <div>
-                <label htmlFor="name" className="block mb-2 font-medium text-lg">
+                <label htmlFor="name" className="block mb-2 font-medium text-gray-700">
                   ชื่อสินค้า
                 </label>
                 <Input
@@ -346,269 +175,275 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                   type="text"
                   required
                   placeholder="ระบุชื่อสินค้า"
-                  overrides={{
-                    Root: { style: { width: "100%" } },
-                    Input: { style: { fontSize: "18px", minHeight: "48px" } },
-                  }}
+                  className="w-full text-lg px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
               </div>
-
-              {actionData?.error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                  {actionData.error}
-                </div>
-              )}
-
-              <div className="flex gap-2 justify-end">
-                <Button
-                  type="button"
-                  onClick={() => setIsCreateModalOpen(false)}
-                  overrides={{
-                    Root: {
-                      style: {
-                        minHeight: "48px",
-                        fontSize: "18px",
-                      },
-                    },
-                  }}
-                >
-                  ยกเลิก
-                </Button>
+              <div className="flex gap-3">
                 <Button
                   type="submit"
                   disabled={isSubmitting}
                   isLoading={isSubmitting}
-                  overrides={{
-                    Root: {
-                      style: {
-                        minHeight: "48px",
-                        fontSize: "18px",
-                      },
-                    },
-                  }}
+                  className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white py-3 px-6 rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
                 >
                   เพิ่มสินค้า
                 </Button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(false)}
+                  className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+                >
+                  ยกเลิก
+                </button>
               </div>
             </Form>
           </div>
-        </Modal>
-
-        {/* Edit Product Modal */}
-        {selectedProduct && (
-          <Modal
-            isOpen={isEditModalOpen}
-            onClose={() => {
-              setIsEditModalOpen(false);
-              setSelectedProduct(null);
-            }}
-            size={SIZE.default}
-            overrides={{
-              Root: {
-                style: {
-                  zIndex: 2000,
-                },
-              },
-            }}
-          >
-            <div className="p-6">
-              <Heading styleLevel={3} className="mb-4">
-                แก้ไขชื่อสินค้า
-              </Heading>
-              <Form method="post" className="space-y-4">
-                <input type="hidden" name="intent" value="update" />
-                <input type="hidden" name="id" value={selectedProduct.id.toString()} />
-
-                <div>
-                  <label htmlFor="edit-name" className="block mb-2 font-medium text-lg">
-                    ชื่อสินค้า
-                  </label>
-                  <Input
-                    id="edit-name"
-                    name="name"
-                    type="text"
-                    required
-                    defaultValue={selectedProduct.name}
-                    placeholder="ระบุชื่อสินค้า"
-                    overrides={{
-                      Root: { style: { width: "100%" } },
-                      Input: { style: { fontSize: "18px", minHeight: "48px" } },
-                    }}
-                  />
-                </div>
-
-                {actionData?.error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                    {actionData.error}
-                  </div>
-                )}
-
-                <div className="flex gap-2 justify-end">
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      setIsEditModalOpen(false);
-                      setSelectedProduct(null);
-                    }}
-                    overrides={{
-                      Root: {
-                        style: {
-                          minHeight: "48px",
-                          fontSize: "18px",
-                        },
-                      },
-                    }}
-                  >
-                    ยกเลิก
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    isLoading={isSubmitting}
-                    overrides={{
-                      Root: {
-                        style: {
-                          minHeight: "48px",
-                          fontSize: "18px",
-                        },
-                      },
-                    }}
-                  >
-                    บันทึก
-                  </Button>
-                </div>
-              </Form>
-            </div>
-          </Modal>
         )}
 
-        {/* Add/Edit Price Modal */}
-        {selectedProduct && (
-          <Modal
-            isOpen={isPriceModalOpen}
-            onClose={() => {
-              setIsPriceModalOpen(false);
-              setSelectedProduct(null);
-              setSelectedPrice(null);
-            }}
-            size={SIZE.default}
-            overrides={{
-              Root: {
-                style: {
-                  zIndex: 2000,
-                },
-              },
-            }}
-          >
-            <div className="p-6">
-              <Heading styleLevel={3} className="mb-4">
-                {selectedPrice ? "แก้ไขราคา" : "เพิ่มราคาใหม่"}
-              </Heading>
-              <p className="text-gray-600 mb-4">
-                สินค้า: {selectedProduct.name}
-              </p>
-              <Form method="post" className="space-y-4">
-                <input
-                  type="hidden"
-                  name="intent"
-                  value={selectedPrice ? "update-price" : "add-price"}
-                />
-                {selectedPrice && (
-                  <input type="hidden" name="id" value={selectedPrice.id.toString()} />
-                )}
-                <input type="hidden" name="productId" value={selectedProduct.id.toString()} />
-
-                <div>
-                  <label htmlFor="price" className="block mb-2 font-medium text-lg">
-                    ราคา
-                  </label>
-                  <Input
-                    id="price"
-                    name="price"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    required
-                    defaultValue={selectedPrice?.price}
-                    placeholder="ระบุราคา"
-                    overrides={{
-                      Root: { style: { width: "100%" } },
-                      Input: { style: { fontSize: "18px", minHeight: "48px" } },
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="priceLabel" className="block mb-2 font-medium text-lg">
-                    ป้ายกำกับ (ไม่ระบุก็ได้)
-                  </label>
-                  <Input
-                    id="priceLabel"
-                    name="priceLabel"
-                    type="text"
-                    defaultValue={selectedPrice?.price_label || ""}
-                    placeholder="เช่น ราคาส่ง, ราคาปลีก"
-                    overrides={{
-                      Root: { style: { width: "100%" } },
-                      Input: { style: { fontSize: "18px", minHeight: "48px" } },
-                    }}
-                  />
-                </div>
-
-                {actionData?.error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                    {actionData.error}
-                  </div>
-                )}
-
-                <div className="flex gap-2 justify-end">
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      setIsPriceModalOpen(false);
-                      setSelectedProduct(null);
-                      setSelectedPrice(null);
-                    }}
-                    overrides={{
-                      Root: {
-                        style: {
-                          minHeight: "48px",
-                          fontSize: "18px",
-                        },
-                      },
-                    }}
-                  >
-                    ยกเลิก
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    isLoading={isSubmitting}
-                    overrides={{
-                      Root: {
-                        style: {
-                          minHeight: "48px",
-                          fontSize: "18px",
-                        },
-                      },
-                    }}
-                  >
-                    {selectedPrice ? "บันทึก" : "เพิ่มราคา"}
-                  </Button>
-                </div>
-              </Form>
+        {/* Products List */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {products.length === 0 ? (
+            <div className="md:col-span-2 bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-lg">
+              <div className="text-6xl mb-4">📦</div>
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">ยังไม่มีสินค้า</h3>
+              <p className="text-gray-500">คลิก "เพิ่มสินค้า" เพื่อเริ่มต้น</p>
             </div>
-          </Modal>
-        )}
+          ) : (
+            products.map((product) => (
+              <div
+                key={product.id}
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow"
+              >
+                <div className="p-4">
+                  {/* Product Header */}
+                  {editingProductId === product.id ? (
+                    <Form method="post" className="mb-3">
+                      <input type="hidden" name="intent" value="update" />
+                      <input type="hidden" name="id" value={product.id.toString()} />
+                      <div className="flex gap-2">
+                        <Input
+                          name="name"
+                          type="text"
+                          required
+                          defaultValue={product.name}
+                          className="flex-1 px-3 py-2 border-2 border-purple-300 rounded-lg text-base"
+                          autoFocus
+                        />
+                        <Button
+                          type="submit"
+                          disabled={isSubmitting}
+                          isLoading={isSubmitting}
+                          className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg"
+                        >
+                          บันทึก
+                        </Button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingProductId(null)}
+                          className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                        >
+                          ยกเลิก
+                        </button>
+                      </div>
+                    </Form>
+                  ) : (
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-lg font-bold text-gray-800 flex-1">{product.name}</h3>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => setEditingProductId(product.id)}
+                          className="inline-flex items-center justify-center !min-h-auto !max-h-auto !text-sm !px-2 !py-0 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                          title="แก้ไข"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm("คุณต้องการลบสินค้านี้ใช่หรือไม่?")) {
+                              const formData = new FormData();
+                              formData.append("intent", "delete");
+                              formData.append("id", product.id.toString());
+                              fetch("/products", { method: "POST", body: formData })
+                                .then(() => window.location.reload());
+                            }
+                          }}
+                          className="inline-flex items-center justify-center !min-h-auto !max-h-auto !text-sm !px-2 !py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                          title="ลบ"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
-        {/* Success/Error Messages */}
+                  {/* Add Price Form */}
+                  {addingPriceProductId === product.id && (
+                    <div className="mb-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
+                      <Form method="post">
+                        <input type="hidden" name="intent" value="add-price" />
+                        <input type="hidden" name="productId" value={product.id.toString()} />
+                        <div className="flex gap-2 flex-wrap">
+                          <Input
+                            name="price"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            required
+                            placeholder="ราคา"
+                            className="flex-1 min-w-[120px] px-3 py-2 border border-gray-300 rounded-lg"
+                          />
+                          <Input
+                            name="priceLabel"
+                            type="text"
+                            placeholder="ป้ายกำกับ"
+                            className="flex-1 min-w-[120px] px-3 py-2 border border-gray-300 rounded-lg"
+                          />
+                          <Button
+                            type="submit"
+                            disabled={isSubmitting}
+                            isLoading={isSubmitting}
+                            className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium"
+                          >
+                            เพิ่ม
+                          </Button>
+                          <button
+                            type="button"
+                            onClick={() => setAddingPriceProductId(null)}
+                            className="!min-h-auto !max-h-auto !text-sm !px-2 !py-0 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                          >
+                            ยกเลิก
+                          </button>
+                        </div>
+                      </Form>
+                    </div>
+                  )}
+
+                  {/* Prices - One Line */}
+                  {product.prices.length > 0 && (
+                    <div className="mb-3">
+                      <div className="flex flex-wrap gap-2 items-center">
+                        {product.prices.map((price) => (
+                          <div
+                            key={price.id}
+                            className="inline-flex items-center gap-1 bg-gray-50 rounded-lg px-2 py-1 border border-gray-200"
+                          >
+                            {editingPriceId === price.id ? (
+                              <Form method="post" className="flex items-center gap-1">
+                                <input type="hidden" name="intent" value="update-price" />
+                                <input type="hidden" name="id" value={price.id.toString()} />
+                                <input type="hidden" name="productId" value={product.id.toString()} />
+                                <Input
+                                  name="price"
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  required
+                                  defaultValue={price.price}
+                                  className="w-24 px-2 py-1 border-2 border-purple-300 rounded text-sm"
+                                  autoFocus
+                                />
+                                <Input
+                                  name="priceLabel"
+                                  type="text"
+                                  defaultValue={price.price_label || ""}
+                                  placeholder="ป้ายกำกับ"
+                                  className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                />
+                                <Button
+                                  type="submit"
+                                  disabled={isSubmitting}
+                                  isLoading={isSubmitting}
+                                  className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs"
+                                >
+                                  ✓
+                                </Button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingPriceId(null)}
+                                  className="!min-h-auto !max-h-auto !text-sm !px-4 !py-1.5 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                                >
+                                  ✕
+                                </button>
+                              </Form>
+                            ) : (
+                              <>
+                                <span className="font-bold text-gray-800">
+                                  {price.price.toLocaleString("th-TH")}
+                                </span>
+                                {price.price_label && (
+                                  <span className="!text-sm !px-2 !py-0.5 bg-purple-100 text-purple-700 rounded-full">
+                                    {price.price_label}
+                                  </span>
+                                )}
+                                <button
+                                  onClick={() => setEditingPriceId(price.id)}
+                                  className="!min-h-auto !max-h-auto !text-sm !p-2 flex items-center justify-center bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors"
+                                  title="แก้ไข"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (confirm("คุณต้องการลบราคานี้ใช่หรือไม่?")) {
+                                      const formData = new FormData();
+                                      formData.append("intent", "delete-price");
+                                      formData.append("id", price.id.toString());
+                                      fetch("/products", { method: "POST", body: formData })
+                                        .then(() => window.location.reload());
+                                    }
+                                  }}
+                                  className="!min-h-auto !max-h-auto !p-2 flex items-center justify-center bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors"
+                                  title="ลบ"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Add Price Button */}
+                  {addingPriceProductId !== product.id && (
+                    <button
+                      onClick={() => setAddingPriceProductId(product.id)}
+                      className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-50 to-blue-50 text-purple-700 rounded-lg hover:from-purple-100 hover:to-blue-100 transition-colors text-sm font-medium border-2 border-dashed border-purple-300"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      เพิ่มราคา
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Toast Messages */}
         {actionData?.success && (
-          <div className="fixed bottom-4 right-4 bg-[#22C55E] text-white px-6 py-3 rounded-lg shadow-lg">
+          <div className="fixed bottom-4 right-4 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl shadow-lg animate-slideUp flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
             {actionData.success}
           </div>
         )}
-        {actionData?.error && !isCreateModalOpen && !isEditModalOpen && !isPriceModalOpen && (
-          <div className="fixed bottom-4 right-4 bg-[#EF4444] text-white px-6 py-3 rounded-lg shadow-lg">
+        {actionData?.error && (
+          <div className="fixed bottom-4 right-4 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl shadow-lg animate-slideUp flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
             {actionData.error}
           </div>
         )}

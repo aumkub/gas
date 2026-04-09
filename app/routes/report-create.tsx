@@ -526,7 +526,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
             <div className="flex flex-wrap gap-2">
               <a
                 href="/"
-                className="inline-flex h-8 min-h-[44px] items-center justify-center rounded-lg bg-gray-100 px-3 text-sm text-gray-700 transition-colors hover:bg-gray-200"
+                className="inline-flex h-[36px] min-h-[36px] items-center justify-center rounded-lg bg-gray-100 px-3 text-sm text-gray-700 transition-colors hover:bg-gray-200"
               >
                 กลับหน้าหลัก
               </a>

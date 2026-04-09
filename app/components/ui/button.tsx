@@ -18,7 +18,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const baseClass =
-  "inline-flex items-center justify-center font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed rounded-lg !h-6 !min-h-[44px] !text-sm";
+  "inline-flex items-center justify-center font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed rounded-lg !h-6 !min-h-[36px] !text-sm";
 
 const kindClass: Record<ButtonKind, string> = {
   primary: "bg-[#2563EB] text-white hover:bg-[#1D4ED8] border-0",

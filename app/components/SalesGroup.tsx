@@ -35,6 +35,28 @@ export interface SalesCustomer {
   items: SalesItem[];
 }
 
+// Validation functions
+export const isSalesItemValid = (item: SalesItem): boolean => {
+  return !!(
+    item.productName?.trim() &&
+    item.price > 0 &&
+    item.quantity > 0
+  );
+};
+
+export const isSalesCustomerValid = (customer: SalesCustomer): boolean => {
+  if (!customer.customerName?.trim()) return false;
+  return customer.items.length > 0 && customer.items.every(isSalesItemValid);
+};
+
+export const getSalesItemErrors = (item: SalesItem): string[] => {
+  const errors: string[] = [];
+  if (!item.productName?.trim()) errors.push("ชื่อสินค้า");
+  if (!item.price || item.price <= 0) errors.push("ราคา");
+  if (!item.quantity || item.quantity <= 0) errors.push("จำนวน");
+  return errors;
+};
+
 interface ProductWithPrices {
   id: number;
   name: string;
@@ -179,7 +201,7 @@ export function SalesGroup({
   return (
     <Card className="mb-4 p-4">
       <Heading styleLevel={3} className="mb-3 text-xl">
-        กลุ่มขาย
+        ขาย
       </Heading>
 
       <div className="space-y-3">
@@ -196,7 +218,7 @@ export function SalesGroup({
               <div className="mb-3 flex items-end justify-between">
                 <div className="flex-1 mr-4">
                   <label className="mb-1 block text-sm font-medium text-gray-700">
-                    ชื่อลูกค้า
+                    ชื่อลูกค้า <span className="text-red-500">*</span>
                   </label>
                   <AutoComplete
                     items={availableCustomers}
@@ -223,6 +245,7 @@ export function SalesGroup({
                       });
                     }}
                     initialValue={customer.customerName}
+                    error={!customer.customerName?.trim() ? "invalid" : undefined}
                   />
                 </div>
                 <div className="flex gap-2">
@@ -251,30 +274,32 @@ export function SalesGroup({
                 <div className="space-y-2">
                   {/* Table Header */}
                   <div className="grid grid-cols-12 gap-2 px-2">
-                    <div className="col-span-4 text-sm font-medium text-gray-700">ชื่อสินค้า</div>
-                    <div className="col-span-2 text-sm font-medium text-gray-700">ราคา</div>
-                    <div className="col-span-2 text-sm font-medium text-gray-700">จำนวน</div>
+                    <div className="col-span-4 text-sm font-medium text-gray-700">ชื่อสินค้า <span className="text-red-500">*</span></div>
+                    <div className="col-span-2 text-sm font-medium text-gray-700">ราคา <span className="text-red-500">*</span></div>
+                    <div className="col-span-2 text-sm font-medium text-gray-700">จำนวน <span className="text-red-500">*</span></div>
                     <div className="col-span-2 text-sm font-medium text-gray-700">รวม</div>
                     <div className="col-span-2"></div>
                   </div>
 
-                  {customer.items.map((item) => (
-                    <ProductRow
-                      key={item.id}
-                      item={item}
-                      availableProducts={availableProducts}
-                      onUpdate={(updates) =>
-                        updateItem(customer.id, item.id, updates)
-                      }
-                      onProductSelect={(product, priceIndex) =>
-                        handleProductSelect(customer.id, item.id, product, priceIndex)
-                      }
-                      onDuplicate={() => duplicateItem(customer.id, item.id)}
-                      onRemove={() => removeItem(customer.id, item.id)}
-                    />
-                  ))}
+                  <div className="max-h-96 space-y-2 pr-1">
+                    {customer.items.map((item) => (
+                      <ProductRow
+                        key={item.id}
+                        item={item}
+                        availableProducts={availableProducts}
+                        onUpdate={(updates) =>
+                          updateItem(customer.id, item.id, updates)
+                        }
+                        onProductSelect={(product, priceIndex) =>
+                          handleProductSelect(customer.id, item.id, product, priceIndex)
+                        }
+                        onDuplicate={() => duplicateItem(customer.id, item.id)}
+                        onRemove={() => removeItem(customer.id, item.id)}
+                      />
+                    ))}
+                  </div>
 
-                  <Button onClick={() => addItem(customer.id)} size="compact" className="w-full">
+                  <Button onClick={() => addItem(customer.id)} size="compact" className="w-full mt-2 sticky bottom-0 z-10 shadow-lg">
                     + เพิ่มรายการสินค้า
                   </Button>
                 </div>
@@ -292,7 +317,7 @@ export function SalesGroup({
       {/* Group Total */}
       <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-2">
         <div className="text-right text-base font-semibold text-green-800">
-          ยอดรวมกลุ่มขาย: {formatCurrency(groupTotal)}
+          ยอดรวมขาย: {formatCurrency(groupTotal)}
         </div>
       </div>
     </Card>
@@ -321,7 +346,7 @@ function ProductRow({
   const availablePrices = selectedProduct?.prices || [];
 
   return (
-    <div className="grid grid-cols-12 items-end gap-2 rounded-lg bg-gray-50 p-2.5">
+    <div className="grid grid-cols-12 items-end gap-2 rounded-lg bg-gray-50 py-0 p-2.5">
       {/* Product Name */}
       <div className="col-span-4">
         <AutoComplete
@@ -338,7 +363,7 @@ function ProductRow({
               <div className="flex flex-col">
                 <span className="font-medium">{p.name}</span>
                 {p.prices.length > 0 && (
-                  <span className="text-xs text-gray-500">{priceList}</span>
+                  <span className="!text-xs text-gray-500">{priceList}</span>
                 )}
               </div>
             );
@@ -355,10 +380,11 @@ function ProductRow({
             onUpdate({
               productId: product.id,
               productName: product.name,
-              price: 0, // Will be set when price is selected
             });
           }}
-          placeholder="พิมพ์หรือเลือกสินค้า"
+          placeholder="ชื่อสินค้า"
+          allowCreate
+          error={!item.productName?.trim() ? "กรุณากรอกชื่อสินค้า" : undefined}
           initialValue={item.productName}
         />
       </div>
@@ -395,6 +421,7 @@ function ProductRow({
             placeholder="เลือกราคา"
             initialValue={item.price > 0 ? item.price.toString() : ""}
             preventEnter={true}
+            error={!item.price || item.price <= 0 ? "กรุณาเลือกราคา" : undefined}
           />
         ) : (
           <Input
@@ -406,7 +433,8 @@ function ProductRow({
               onUpdate({ price: parseFloat(e.target.value) || 0 })
             }
             placeholder="0"
-            className="h-10 px-3 text-sm"
+            data-invalid={!item.price || item.price <= 0 ? "true" : undefined}
+            className={`h-10 px-3 !text-sm ${(!item.price || item.price <= 0) ? "border-red-500 bg-red-50" : ""}`}
           />
         )}
       </div>
@@ -421,13 +449,14 @@ function ProductRow({
           onChange={(e) =>
             onUpdate({ quantity: parseInt(e.target.value) || 1 })
           }
-          className="h-10 px-3 text-sm"
+          data-invalid={!item.quantity || item.quantity <= 0 ? "true" : undefined}
+          className={`h-10 px-3 text-sm ${(!item.quantity || item.quantity <= 0) ? 'border-red-500 bg-red-50' : ''}`}
         />
       </div>
 
       {/* Total */}
       <div className="col-span-2">
-        <div className="flex h-10 items-center rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium">
+        <div className="flex h-[36px] items-center rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium">
           {formatCurrency(item.total)}
         </div>
       </div>

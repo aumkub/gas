@@ -16,6 +16,17 @@ import { Input } from "~/components/ui/input";
 import { Modal, SIZE } from "~/components/ui/modal";
 import { THAI_BANKS } from "~/lib/thai-banks";
 import { AutoComplete } from "~/components/AutoComplete";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faArrowBack,
+  faPlus,
+  faBuildingColumns,
+  faCreditCard,
+  faUser,
+  faPen,
+  faTrash,
+  faCheck,
+} from "@fortawesome/free-solid-svg-icons";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -100,153 +111,148 @@ export default function Banks({ loaderData, actionData }: Route.ComponentProps) 
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedBank, setSelectedBank] = useState<Bank | null>(null);
-
-  const handleEditBank = (bank: Bank) => {
-    setSelectedBank(bank);
-    setIsEditModalOpen(true);
-  };
-
-  const handleDeleteBank = async (id: number) => {
-    if (!confirm("คุณต้องการลบบัญชีธนาคารนี้ใช่หรือไม่?")) return;
-
-    const formData = new FormData();
-    formData.append("intent", "delete");
-    formData.append("id", id.toString());
-
-    await fetch("/banks", {
-      method: "POST",
-      body: formData,
-    });
-
-    window.location.reload();
-  };
+  const [editingBankId, setEditingBankId] = useState<number | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] px-4 py-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
+      <div className="max-w-6xl mx-auto px-4 py-8 md:px-6">
         {/* Header */}
-        <div className="bg-white rounded-lg p-6 mb-6 border border-[#E2E8F0]">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <Heading styleLevel={1}>จัดการธนาคาร</Heading>
-              <p className="text-[#64748B] mt-2">ยินดีต้อนรับ, {user.username}</p>
+        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-gray-100 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-green-100 to-blue-100 rounded-full -mr-32 -mt-32 opacity-50"></div>
+          <div className="relative z-10">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-3">
+                  จัดการธนาคาร
+                </h1>
+                <p className="text-gray-600 text-lg flex items-center gap-2">
+                  <FontAwesomeIcon icon={faBuildingColumns} className="text-2xl text-green-600" />
+                  ยินดีต้อนรับ, <span className="font-semibold text-green-600">{user.username}</span>
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <a
+                  href="/"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+                >
+                  <FontAwesomeIcon icon={faArrowBack} />
+                  กลับหน้าหลัก
+                </a>
+                <button
+                  onClick={() => setShowAddForm(!showAddForm)}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl hover:from-green-600 hover:to-blue-600 transition-all shadow-md hover:shadow-lg font-medium"
+                >
+                  <FontAwesomeIcon icon={faPlus} />
+                  {showAddForm ? "ปิดฟอร์ม" : "เพิ่มบัญชีธนาคาร"}
+                </button>
+              </div>
             </div>
-            <Button
-              onClick={() => setIsCreateModalOpen(true)}
-              overrides={{
-                Root: {
-                  style: {
-                  },
-                },
-              }}
-            >
-              + เพิ่มบัญชีธนาคาร
-            </Button>
           </div>
-          <a
-            href="/"
-            className="inline-block px-4 py-2 bg-[#64748B] text-white rounded-lg hover:bg-[#475569] transition-colors"
-          >
-            ← กลับหน้าหลัก
-          </a>
         </div>
 
+        {/* Add Bank Form */}
+        {showAddForm && (
+          <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100 animate-slideDown">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">เพิ่มบัญชีธนาคารใหม่</h2>
+            <BankForm intent="create" isSubmitting={isSubmitting} actionData={actionData} />
+          </div>
+        )}
+
         {/* Banks List */}
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {banks.length === 0 ? (
-            <div className="bg-white rounded-lg p-8 text-center text-[#64748B] border border-[#E2E8F0]">
-              ยังไม่มีบัญชีธนาคาร คลิก "เพิ่มบัญชีธนาคาร" เพื่อเริ่มต้น
+            <div className="md:col-span-2 bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-lg">
+              <FontAwesomeIcon icon={faBuildingColumns} className="text-6xl text-gray-300 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">ยังไม่มีบัญชีธนาคาร</h3>
+              <p className="text-gray-500">คลิก "เพิ่มบัญชีธนาคาร" เพื่อเริ่มต้น</p>
             </div>
           ) : (
             banks.map((bank) => (
-              <Card
+              <div
                 key={bank.id}
-                overrides={{
-                  Root: {
-                    style: {
-                      padding: "24px",
-                    },
-                  },
-                }}
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow"
               >
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <h3 className="text-2xl font-semibold mb-2">{bank.bank_name}</h3>
-                    <p className="text-lg text-[#0F172A] mb-1">
-                      เลขบัญชี: {bank.account_number}
-                    </p>
-                    <p className="text-lg text-[#0F172A]">
-                      เจ้าของบัญชี: {bank.owner_name}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => handleEditBank(bank)}
-                      overrides={{
-                        Root: {
-                          style: {
-                          },
-                        },
-                      }}
-                    >
-                      แก้ไข
-                    </Button>
-                    <Button
-                      onClick={() => handleDeleteBank(bank.id)}
-                      kind="destructive"
-                      overrides={{
-                        Root: {
-                          style: {
-                          },
-                        },
-                      }}
-                    >
-                      ลบ
-                    </Button>
-                  </div>
+                <div className="p-6">
+                  {editingBankId === bank.id ? (
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-3">แก้ไขบัญชีธนาคาร</h3>
+                      <BankForm
+                        intent="update"
+                        isSubmitting={isSubmitting}
+                        actionData={actionData}
+                        initialData={bank}
+                        onCancel={() => setEditingBankId(null)}
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-xl flex items-center justify-center text-white text-xl font-bold">
+                            <FontAwesomeIcon icon={faBuildingColumns} />
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold text-gray-800">{bank.bank_name}</h3>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <FontAwesomeIcon icon={faCreditCard} className="h-5 w-5" />
+                          <span className="font-mono font-semibold text-lg">{bank.account_number}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <FontAwesomeIcon icon={faUser} className="h-5 w-5" />
+                          <span className="font-medium">{bank.owner_name}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setEditingBankId(bank.id)}
+                          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors font-medium"
+                        >
+                          <FontAwesomeIcon icon={faPen} className="h-4 w-4" />
+                          แก้ไข
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm("คุณต้องการลบบัญชีธนาคารนี้ใช่หรือไม่?")) {
+                              const formData = new FormData();
+                              formData.append("intent", "delete");
+                              formData.append("id", bank.id.toString());
+                              fetch("/banks", { method: "POST", body: formData })
+                                .then(() => window.location.reload());
+                            }
+                          }}
+                          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors font-medium"
+                        >
+                          <FontAwesomeIcon icon={faTrash} className="h-4 w-4" />
+                          ลบ
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
-              </Card>
+              </div>
             ))
           )}
         </div>
 
-        {/* Create Bank Modal */}
-        <BankFormModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          title="เพิ่มบัญชีธนาคารใหม่"
-          intent="create"
-          isSubmitting={isSubmitting}
-          actionData={actionData}
-        />
-
-        {/* Edit Bank Modal */}
-        {selectedBank && (
-          <BankFormModal
-            isOpen={isEditModalOpen}
-            onClose={() => {
-              setIsEditModalOpen(false);
-              setSelectedBank(null);
-            }}
-            title="แก้ไขบัญชีธนาคาร"
-            intent="update"
-            isSubmitting={isSubmitting}
-            actionData={actionData}
-            initialData={selectedBank}
-          />
-        )}
-
-        {/* Success/Error Messages */}
+        {/* Toast Messages */}
         {actionData?.success && (
-          <div className="fixed bottom-4 right-4 bg-[#22C55E] text-white px-6 py-3 rounded-lg shadow-lg">
+          <div className="fixed bottom-4 right-4 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl shadow-lg animate-slideUp flex items-center gap-2">
+            <FontAwesomeIcon icon={faCheck} />
             {actionData.success}
           </div>
         )}
-        {actionData?.error && !isCreateModalOpen && !isEditModalOpen && (
-          <div className="fixed bottom-4 right-4 bg-[#EF4444] text-white px-6 py-3 rounded-lg shadow-lg">
+        {actionData?.error && (
+          <div className="fixed bottom-4 right-4 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl shadow-lg animate-slideUp flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
             {actionData.error}
           </div>
         )}
@@ -255,148 +261,106 @@ export default function Banks({ loaderData, actionData }: Route.ComponentProps) 
   );
 }
 
-interface BankFormModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
+interface BankFormProps {
   intent: "create" | "update";
   isSubmitting: boolean;
   actionData?: { success?: string; error?: string };
   initialData?: Bank;
+  onCancel?: () => void;
 }
 
-function BankFormModal({
-  isOpen,
-  onClose,
-  title,
-  intent,
-  isSubmitting,
-  actionData,
-  initialData,
-}: BankFormModalProps) {
+function BankForm({ intent, isSubmitting, actionData, initialData, onCancel }: BankFormProps) {
   const [selectedBank, setSelectedBank] = useState<string>(
     initialData?.bank_name || ""
   );
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      size={SIZE.default}
-      overrides={{
-        Root: {
-          style: {
-            zIndex: 2000,
-          },
-        },
-      }}
-    >
-      <div className="p-6">
-        <Heading styleLevel={3} className="mb-4">
-          {title}
-        </Heading>
-        <Form method="post" className="space-y-4">
-          <input type="hidden" name="intent" value={intent} />
-          {initialData && (
-            <input type="hidden" name="id" value={initialData.id.toString()} />
-          )}
+    <Form method="post" className="space-y-4">
+      <input type="hidden" name="intent" value={intent} />
+      {initialData && (
+        <input type="hidden" name="id" value={initialData.id.toString()} />
+      )}
 
-          <input
-            type="hidden"
-            name="bankName"
-            value={selectedBank}
-            onChange={(e) => setSelectedBank(e.target.value)}
-          />
+      <input
+        type="hidden"
+        name="bankName"
+        value={selectedBank}
+        onChange={(e) => setSelectedBank(e.target.value)}
+      />
 
-          <div>
-            <label className="block mb-2 font-medium text-lg">
-              ชื่อธนาคาร
-            </label>
-            <div className="bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-lg min-h-[48px] flex items-center">
-              {selectedBank || "เลือกธนาคารจากรายการด้านล่าง"}
-            </div>
-            <BankSelector
-              onSelect={(bank) => setSelectedBank(bank.name)}
-              selectedBank={selectedBank}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="accountNumber" className="block mb-2 font-medium text-lg">
-              เลขบัญชี
-            </label>
-            <Input
-              id="accountNumber"
-              name="accountNumber"
-              type="text"
-              required
-              defaultValue={initialData?.account_number}
-              placeholder="ระบุเลขบัญชี"
-              overrides={{
-                Root: { style: { width: "100%" } },
-                Input: { style: { fontSize: "18px", minHeight: "48px" } },
-              }}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="ownerName" className="block mb-2 font-medium text-lg">
-              เจ้าของบัญชี / หมายเหตุ
-            </label>
-            <Input
-              id="ownerName"
-              name="ownerName"
-              type="text"
-              required
-              defaultValue={initialData?.owner_name}
-              placeholder="ระบุชื่อเจ้าของบัญชี"
-              overrides={{
-                Root: { style: { width: "100%" } },
-                Input: { style: { fontSize: "18px", minHeight: "48px" } },
-              }}
-            />
-          </div>
-
-          {actionData?.error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {actionData.error}
-            </div>
-          )}
-
-          <div className="flex gap-2 justify-end">
-            <Button
-              type="button"
-              onClick={onClose}
-              overrides={{
-                Root: {
-                  style: {
-                    minHeight: "48px",
-                    fontSize: "18px",
-                  },
-                },
-              }}
-            >
-              ยกเลิก
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting || !selectedBank}
-              isLoading={isSubmitting}
-              overrides={{
-                Root: {
-                  style: {
-                    minHeight: "48px",
-                    fontSize: "18px",
-                  },
-                },
-              }}
-            >
-              {intent === "create" ? "เพิ่มบัญชีธนาคาร" : "บันทึก"}
-            </Button>
-          </div>
-        </Form>
+      <div>
+        <label className="block mb-2 font-medium text-gray-700">
+          ชื่อธนาคาร
+        </label>
+        <div className="bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-lg min-h-[48px] flex items-center">
+          {selectedBank || "เลือกธนาคารจากรายการด้านล่าง"}
+        </div>
+        <BankSelector
+          onSelect={(bank) => setSelectedBank(bank.name)}
+          selectedBank={selectedBank}
+        />
       </div>
-    </Modal>
+
+      <div>
+        <label htmlFor="accountNumber" className="block mb-2 font-medium text-gray-700">
+          เลขบัญชี
+        </label>
+        <Input
+          id="accountNumber"
+          name="accountNumber"
+          type="text"
+          required
+          defaultValue={initialData?.account_number}
+          placeholder="ระบุเลขบัญชี"
+          className="w-full text-lg px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="ownerName" className="block mb-2 font-medium text-gray-700">
+          เจ้าของบัญชี / หมายเหตุ
+        </label>
+        <Input
+          id="ownerName"
+          name="ownerName"
+          type="text"
+          required
+          defaultValue={initialData?.owner_name}
+          placeholder="ระบุชื่อเจ้าของบัญชี"
+          className="w-full text-lg px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+        />
+      </div>
+
+      {actionData?.error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+          {actionData.error}
+        </div>
+      )}
+
+      <div className="flex gap-3">
+        <Button
+          type="submit"
+          disabled={isSubmitting || !selectedBank}
+          isLoading={isSubmitting}
+          kind="primary"
+          size="sm"
+          className="flex-1 !h-12 rounded-xl"
+        >
+          {intent === "create" ? "เพิ่มบัญชีธนาคาร" : "บันทึก"}
+        </Button>
+        {onCancel && (
+          <Button
+            type="button"
+            onClick={onCancel}
+            kind="tertiary"
+            size="sm"
+            className="!h-12 px-6 rounded-xl"
+          >
+            ยกเลิก
+          </Button>
+        )}
+      </div>
+    </Form>
   );
 }
 
@@ -407,18 +371,18 @@ interface BankSelectorProps {
 
 function BankSelector({ onSelect, selectedBank }: BankSelectorProps) {
   return (
-    <div className="mt-2 space-y-1">
+    <div className="mt-3 space-y-2">
       <p className="text-sm text-gray-600 mb-2">คลิกเลือกจากรายการ:</p>
-      <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 bg-gray-50 rounded-xl border border-gray-200">
         {THAI_BANKS.map((bank) => (
           <button
             key={bank.code}
             type="button"
             onClick={() => onSelect(bank)}
-            className={`text-left px-3 py-2 rounded border text-base transition-colors ${
+            className={`text-left px-3 py-2.5 rounded-lg border text-base transition-all font-medium ${
               selectedBank === bank.name
-                ? "bg-blue-500 text-white border-blue-500"
-                : "bg-white hover:bg-gray-50 border-gray-300"
+                ? "bg-gradient-to-r from-green-500 to-blue-500 text-white border-transparent shadow-md"
+                : "bg-white hover:bg-gradient-to-r hover:from-green-50 hover:to-blue-50 border-gray-300 hover:border-green-400"
             }`}
             style={{ minHeight: "44px" }}
           >

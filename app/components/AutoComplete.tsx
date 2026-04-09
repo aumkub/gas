@@ -31,7 +31,7 @@ export function AutoComplete<T>({
   filterItem,
   onSelect,
   onInputValueChange,
-  placeholder = "พิมพ์เพื่อค้นหา...",
+  placeholder = "ค้นหา...",
   label,
   allowCreate = false,
   onCreate,
@@ -52,6 +52,19 @@ export function AutoComplete<T>({
 
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isFocusedRef = useRef(false);
+
+  const normalizeValue = (value: string) => value.trim().toLowerCase();
+
+  const findExactMatch = (query: string): T | null => {
+    if (!query.trim()) return null;
+    const normalizedQuery = normalizeValue(query);
+    return (
+      filteredItems.find(
+        (item) => normalizeValue(itemToString(item)) === normalizedQuery
+      ) ?? null
+    );
+  };
 
   // Filter items based on input
   useEffect(() => {
@@ -68,6 +81,14 @@ export function AutoComplete<T>({
     setFilteredItems(filtered);
     setHighlightedIndex(-1);
   }, [inputValue, items, filterItem, itemToString]);
+
+  // Sync external updates (from parent state) into the input display,
+  // but avoid overriding user typing while the field is actively focused/open.
+  useEffect(() => {
+    if (!isFocusedRef.current && !isOpen) {
+      setInputValue(initialValue);
+    }
+  }, [initialValue, isOpen]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -108,7 +129,13 @@ export function AutoComplete<T>({
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      if (preventEnter && e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      return;
+    }
 
     switch (e.key) {
       case "ArrowDown":
@@ -128,7 +155,15 @@ export function AutoComplete<T>({
         e.stopPropagation();
         if (highlightedIndex >= 0 && filteredItems[highlightedIndex]) {
           handleSelectItem(filteredItems[highlightedIndex]);
-        } else if (allowCreate && inputValue.trim()) {
+        } else {
+          const exactMatch = findExactMatch(inputValue);
+          if (exactMatch) {
+            handleSelectItem(exactMatch);
+            break;
+          }
+        }
+
+        if (allowCreate && inputValue.trim()) {
           handleCreateNew();
         }
         break;
@@ -142,12 +177,14 @@ export function AutoComplete<T>({
   };
 
   const handleFocus = () => {
+    isFocusedRef.current = true;
     if (filteredItems.length > 0) {
       setIsOpen(true);
     }
   };
 
   const handleBlur = () => {
+    isFocusedRef.current = false;
     // Close dropdown when input loses focus
     setTimeout(() => {
       setIsOpen(false);
@@ -181,10 +218,11 @@ export function AutoComplete<T>({
     };
   }, []);
 
+  const hasExactMatch = !!findExactMatch(inputValue);
   const showCreateOption =
     allowCreate &&
-    inputValue.trim() &&
-    filteredItems.length === 0 &&
+    !!inputValue.trim() &&
+    !hasExactMatch &&
     !isCreating;
 
   return (
@@ -206,6 +244,11 @@ export function AutoComplete<T>({
             onBlur={handleBlur}
             placeholder={placeholder}
             disabled={disabled || isLoading || isCreating}
+            aria-invalid={!!error}
+            data-invalid={error ? "true" : undefined}
+            className={
+              error ? "border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-200" : ""
+            }
           />
 
           {inputValue && (
@@ -214,19 +257,13 @@ export function AutoComplete<T>({
               disabled={disabled || isLoading || isCreating}
               kind="ghost"
               size="compact"
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0 !text-xs"
+              className="absolute right-2 top-1/2 -translate-y-1/2 !h-6 !w-6 !p-0 !text-sm !min-h-[30px] !max-h-[30px]"
             >
               <FontAwesomeIcon icon={faXmark} />
             </Button>
           )}
         </div>
       </div>
-
-      {error && (
-        <div className="mt-1 text-sm text-red-600">
-          {error}
-        </div>
-      )}
 
       {/* Dropdown */}
       {isOpen && (filteredItems.length > 0 || showCreateOption) && (

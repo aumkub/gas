@@ -45,27 +45,28 @@ export function ReportSummary({
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <Heading styleLevel={1}>
+      <div className="bg-white rounded-lg shadow-md p-3 py-4 pb-5">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div className="w-full sm:w-auto">
+            <Heading styleLevel={1} className="text-xl sm:text-2xl break-words">
               รายงานการขายวันที่{" "}
               {format(new Date(reportDate), "d MMMM yyyy", { locale: th })}
             </Heading>
           </div>
           {!isReadOnly && (
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               {onEdit && (
                 <Button
                   onClick={onEdit}
                   overrides={{
                     Root: {
                       style: {
-                        minHeight: "48px",
-                        fontSize: "18px",
-                        padding: "12px 24px",
+                        minHeight: "36px",
+                        fontSize: "14px",
+                        padding: "8px 16px",
+                        flex: 1,
                       },
                     },
                   }}
@@ -79,9 +80,10 @@ export function ReportSummary({
                   overrides={{
                     Root: {
                       style: {
-                        minHeight: "48px",
-                        fontSize: "18px",
-                        padding: "12px 24px",
+                        minHeight: "36px",
+                        fontSize: "14px",
+                        padding: "8px 16px",
+                        flex: 1,
                       },
                     },
                   }}
@@ -94,261 +96,221 @@ export function ReportSummary({
         </div>
       </div>
 
-      {/* Grand Total */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-lg p-6">
-        <div className="text-3xl font-bold text-center">
-          ยอดรวมทั้งหมด: {formatCurrency(grandTotal)}
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+        {/* Sales Group - 8 columns */}
+        <div className="xl:col-span-8">
+          <Card className="p-4">
+            <Heading styleLevel={3} className="mb-3 text-lg">
+              ขาย
+            </Heading>
+
+            {salesByCustomer.size === 0 ? (
+              <div className="text-center text-gray-500 py-4 text-sm">ไม่มีรายการขาย</div>
+            ) : (
+              <div className="space-y-3">
+                {Array.from(salesByCustomer.entries()).map(([customerId, items]) => {
+                  const customerName = items[0]?.customer_name || "ไม่ระบุชื่อ";
+                  const customerTotal = items.reduce((sum, item) => sum + item.total, 0);
+
+                  return (
+                    <div
+                      key={customerId || "null"}
+                      className="border border-gray-300 rounded-lg p-3"
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-lg font-semibold">{customerName}</h3>
+                        <div className="text-base font-medium text-blue-600">
+                          ยอดรวม: {formatCurrency(customerTotal)}
+                        </div>
+                      </div>
+
+                      {/* Product Table */}
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="bg-gray-50">
+                              <th className="px-2 py-2 text-left text-sm font-semibold">
+                                ชื่อสินค้า
+                              </th>
+                              <th className="px-2 py-2 text-right text-sm font-semibold">
+                                ราคา
+                              </th>
+                              <th className="px-2 py-2 text-right text-sm font-semibold">
+                                จำนวน
+                              </th>
+                              <th className="px-2 py-2 text-right text-sm font-semibold">
+                                รวม
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {items.map((item) => (
+                              <tr
+                                key={item.id}
+                                className="border-t border-gray-200"
+                              >
+                                <td className="px-2 py-2 text-sm font-medium">
+                                  {item.product_name || "-"}
+                                </td>
+                                <td className="px-2 py-2 text-right text-sm font-medium">
+                                  {formatCurrency(item.price)}
+                                </td>
+                                <td className="px-2 py-2 text-right text-sm font-medium">
+                                  {item.quantity}
+                                </td>
+                                <td className="px-2 py-2 text-right text-sm font-medium font-medium">
+                                  {formatCurrency(item.total)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="mt-3 bg-green-50 border border-green-500 rounded-lg px-3 py-2">
+              <div className="text-base font-bold text-right">
+                ยอดรวมขาย: {formatCurrency(salesTotal)}
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Right Column - 4 columns */}
+        <div className="xl:col-span-4 space-y-4">
+          {/* Bill Hold Group */}
+          <Card className="p-4">
+            <Heading styleLevel={3} className="mb-3 text-lg">
+              บิลฝากเก็บ
+            </Heading>
+
+            {billHoldItems.length === 0 ? (
+              <div className="text-center text-gray-500 py-4 text-sm">
+                ไม่มีรายการบิลฝากเก็บ
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="px-2 py-2 text-left text-xs font-semibold">
+                        ชื่อลูกค้า
+                      </th>
+                      <th className="px-2 py-2 text-right text-xs font-semibold">
+                        จำนวนเงิน
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {billHoldItems.map((item) => (
+                      <tr key={item.id} className="border-t border-gray-200">
+                        <td className="px-2 py-2 text-sm font-medium">
+                          {item.customer_name || "-"}
+                        </td>
+                        <td className="px-2 py-2 text-right text-sm font-medium">
+                          {formatCurrency(item.amount)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div className="mt-3 bg-orange-50 border border-orange-500 rounded-lg px-3 py-2">
+              <div className="text-base font-bold text-right">
+                ยอดรวมบิลฝากเก็บ: {formatCurrency(billHoldTotal)}
+              </div>
+            </div>
+          </Card>
+
+          {/* Check Group */}
+          <Card className="p-4">
+            <Heading styleLevel={3} className="mb-3 text-lg">
+              เช็ค
+            </Heading>
+
+            {checkItems.length === 0 ? (
+              <div className="text-center text-gray-500 py-4 text-sm">ไม่มีรายการเช็ค</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="px-2 py-2 text-left text-xs font-semibold">
+                        ธนาคาร
+                      </th>
+                      <th className="px-2 py-2 text-left text-xs font-semibold">
+                        เลขบัญชี
+                      </th>
+                      <th className="px-2 py-2 text-right text-xs font-semibold">
+                        จำนวนเงิน
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {checkItems.map((item) => (
+                      <tr key={item.id} className="border-t border-gray-200">
+                        <td className="px-2 py-2 text-sm font-medium">{item.bank_name}</td>
+                        <td className="px-2 py-2 text-sm font-medium">{item.account_number}</td>
+                        <td className="px-2 py-2 text-right text-xs font-medium">
+                          {formatCurrency(item.amount)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div className="mt-3 bg-purple-50 border border-purple-500 rounded-lg px-3 py-2">
+              <div className="text-base font-bold text-right">
+                ยอดรวมเช็ค: {formatCurrency(checkTotal)}
+              </div>
+            </div>
+          </Card>
+
+          {/* Summary Card */}
+          <Card
+            className="p-4 text-white"
+            style={{
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            }}
+          >
+            <Heading styleLevel={3} className="mb-3 text-white text-lg">
+              สรุปยอดรวม
+            </Heading>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-sm">
+                <span>ขาย:</span>
+                <span className="font-semibold">{formatCurrency(salesTotal)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span>บิลฝากเก็บ:</span>
+                <span className="font-semibold">
+                  {formatCurrency(billHoldTotal)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span>เช็ค:</span>
+                <span className="font-semibold">{formatCurrency(checkTotal)}</span>
+              </div>
+              {/* <div className="border-t-2 border-white/30 pt-2 mt-2">
+                <div className="flex justify-between items-center text-lg font-bold">
+                  <span>ยอดรวมทั้งหมด:</span>
+                  <span>{formatCurrency(grandTotal)}</span>
+                </div>
+              </div> */}
+            </div>
+          </Card>
         </div>
       </div>
-
-      {/* Sales Group */}
-      <Card
-        overrides={{
-          Root: {
-            style: {
-              padding: "24px",
-            },
-          },
-        }}
-      >
-        <Heading styleLevel={3} className="mb-4">
-          กลุ่มขาย
-        </Heading>
-
-        {salesByCustomer.size === 0 ? (
-          <div className="text-center text-gray-500 py-8">ไม่มีรายการขาย</div>
-        ) : (
-          <div className="space-y-6">
-            {Array.from(salesByCustomer.entries()).map(([customerId, items]) => {
-              const customerName = items[0]?.customer_name || "ไม่ระบุชื่อ";
-              const customerTotal = items.reduce((sum, item) => sum + item.total, 0);
-
-              return (
-                <div
-                  key={customerId || "null"}
-                  className="border border-gray-300 rounded-lg p-4"
-                >
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-2xl font-semibold">{customerName}</h3>
-                    <div className="text-xl font-medium text-blue-600">
-                      ยอดรวม: {formatCurrency(customerTotal)}
-                    </div>
-                  </div>
-
-                  {/* Product Table */}
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="bg-gray-50">
-                          <th className="px-4 py-3 text-left text-lg font-semibold">
-                            ชื่อสินค้า
-                          </th>
-                          <th className="px-4 py-3 text-right text-lg font-semibold">
-                            ราคา
-                          </th>
-                          <th className="px-4 py-3 text-right text-lg font-semibold">
-                            จำนวน
-                          </th>
-                          <th className="px-4 py-3 text-right text-lg font-semibold">
-                            รวม
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {items.map((item) => (
-                          <tr
-                            key={item.id}
-                            className="border-t border-gray-200"
-                          >
-                            <td className="px-4 py-3 text-base">
-                              {item.product_name || "-"}
-                            </td>
-                            <td className="px-4 py-3 text-right text-base">
-                              {formatCurrency(item.price)}
-                            </td>
-                            <td className="px-4 py-3 text-right text-base">
-                              {item.quantity}
-                            </td>
-                            <td className="px-4 py-3 text-right text-base font-medium">
-                              {formatCurrency(item.total)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        <div className="mt-6 bg-green-50 border-2 border-green-500 rounded-lg px-6 py-4">
-          <div className="text-2xl font-bold text-right">
-            ยอดรวมกลุ่มขาย: {formatCurrency(salesTotal)}
-          </div>
-        </div>
-      </Card>
-
-      {/* Bill Hold Group */}
-      <Card
-        overrides={{
-          Root: {
-            style: {
-              padding: "24px",
-            },
-          },
-        }}
-      >
-        <Heading styleLevel={3} className="mb-4">
-          กลุ่มบิลฝากเก็บ
-        </Heading>
-
-        {billHoldItems.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
-            ไม่มีรายการบิลฝากเก็บ
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-4 py-3 text-left text-lg font-semibold">
-                    ชื่อลูกค้า
-                  </th>
-                  <th className="px-4 py-3 text-right text-lg font-semibold">
-                    จำนวนเงิน
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {billHoldItems.map((item) => (
-                  <tr key={item.id} className="border-t border-gray-200">
-                    <td className="px-4 py-3 text-base">
-                      {item.customer_name || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-right text-base font-medium">
-                      {formatCurrency(item.amount)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        <div className="mt-6 bg-orange-50 border-2 border-orange-500 rounded-lg px-6 py-4">
-          <div className="text-2xl font-bold text-right">
-            ยอดรวมกลุ่มบิลฝากเก็บ: {formatCurrency(billHoldTotal)}
-          </div>
-        </div>
-      </Card>
-
-      {/* Check Group */}
-      <Card
-        overrides={{
-          Root: {
-            style: {
-              padding: "24px",
-            },
-          },
-        }}
-      >
-        <Heading styleLevel={3} className="mb-4">
-          กลุ่มเช็ค
-        </Heading>
-
-        {checkItems.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">ไม่มีรายการเช็ค</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-4 py-3 text-left text-lg font-semibold">
-                    ชื่อธนาคาร
-                  </th>
-                  <th className="px-4 py-3 text-left text-lg font-semibold">
-                    เลขบัญชี
-                  </th>
-                  <th className="px-4 py-3 text-left text-lg font-semibold">
-                    ชื่อลูกค้า
-                  </th>
-                  <th className="px-4 py-3 text-left text-lg font-semibold">
-                    วันที่บนเช็ค
-                  </th>
-                  <th className="px-4 py-3 text-right text-lg font-semibold">
-                    จำนวนเงิน
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {checkItems.map((item) => (
-                  <tr key={item.id} className="border-t border-gray-200">
-                    <td className="px-4 py-3 text-base">{item.bank_name}</td>
-                    <td className="px-4 py-3 text-base">{item.account_number}</td>
-                    <td className="px-4 py-3 text-base">
-                      {item.customer_name || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-base">
-                      {format(new Date(item.check_date), "d/M/yyyy")}
-                    </td>
-                    <td className="px-4 py-3 text-right text-base font-medium">
-                      {formatCurrency(item.amount)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        <div className="mt-6 bg-purple-50 border-2 border-purple-500 rounded-lg px-6 py-4">
-          <div className="text-2xl font-bold text-right">
-            ยอดรวมกลุ่มเช็ค: {formatCurrency(checkTotal)}
-          </div>
-        </div>
-      </Card>
-
-      {/* Summary */}
-      <Card
-        overrides={{
-          Root: {
-            style: {
-              padding: "24px",
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              color: "white",
-            },
-          },
-        }}
-      >
-        <Heading styleLevel={3} className="mb-4 text-white">
-          สรุปยอดรวม
-        </Heading>
-
-        <div className="space-y-3">
-          <div className="flex justify-between items-center text-xl">
-            <span>กลุ่มขาย:</span>
-            <span className="font-semibold">{formatCurrency(salesTotal)}</span>
-          </div>
-          <div className="flex justify-between items-center text-xl">
-            <span>กลุ่มบิลฝากเก็บ:</span>
-            <span className="font-semibold">
-              {formatCurrency(billHoldTotal)}
-            </span>
-          </div>
-          <div className="flex justify-between items-center text-xl">
-            <span>กลุ่มเช็ค:</span>
-            <span className="font-semibold">{formatCurrency(checkTotal)}</span>
-          </div>
-          <div className="border-t-2 border-white/30 pt-3 mt-3">
-            <div className="flex justify-between items-center text-3xl font-bold">
-              <span>ยอดรวมทั้งหมด:</span>
-              <span>{formatCurrency(grandTotal)}</span>
-            </div>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 }
