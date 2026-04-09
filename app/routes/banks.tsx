@@ -1,5 +1,5 @@
 import type { Route } from "./+types/banks";
-import { redirect, useLoaderData, useNavigation, Form } from "react-router";
+import { useNavigation, Form } from "react-router";
 import { requireAuth } from "~/lib/session";
 import {
   getAllBanks,
@@ -8,14 +8,10 @@ import {
   deleteBank,
 } from "~/lib/db";
 import type { Bank } from "~/lib/db";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
-import { Card } from "~/components/Card";
-import { Heading } from "~/components/Heading";
 import { Input } from "~/components/ui/input";
-import { Modal, SIZE } from "~/components/ui/modal";
 import { THAI_BANKS } from "~/lib/thai-banks";
-import { AutoComplete } from "~/components/AutoComplete";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowLeft,
@@ -66,7 +62,7 @@ export async function action({ context, request }: Route.ActionArgs) {
           accountNumber.trim(),
           ownerName.trim()
         );
-        return { success: "เพิ่มบัญชีธนาคารเรียบร้อย" };
+        return { success: "เพิ่มบัญชีธนาคารเรียบร้อย", intent: "create" };
       }
 
       case "update": {
@@ -86,7 +82,7 @@ export async function action({ context, request }: Route.ActionArgs) {
           accountNumber.trim(),
           ownerName.trim()
         );
-        return { success: "แก้ไขบัญชีธนาคารเรียบร้อย" };
+        return { success: "แก้ไขบัญชีธนาคารเรียบร้อย", intent: "update", bankId: id };
       }
 
       case "delete": {
@@ -95,7 +91,7 @@ export async function action({ context, request }: Route.ActionArgs) {
           return { error: "ข้อมูลไม่ถูกต้อง" };
         }
         await deleteBank(db, id);
-        return { success: "ลบบัญชีธนาคารเรียบร้อย" };
+        return { success: "ลบบัญชีธนาคารเรียบร้อย", intent: "delete", deletedBankId: id };
       }
 
       default:
@@ -114,6 +110,31 @@ export default function Banks({ loaderData, actionData }: Route.ComponentProps) 
 
   const [editingBankId, setEditingBankId] = useState<number | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [banksState, setBanksState] = useState(banks);
+  const makeTempId = () => -Date.now();
+  const nowIso = () => new Date().toISOString();
+
+  useEffect(() => {
+    setBanksState(banks);
+  }, [banks]);
+
+  useEffect(() => {
+    if (!actionData) return;
+
+    if (actionData.success) {
+      if (actionData.intent === "create") {
+        setShowAddForm(false);
+      }
+
+      if (actionData.intent === "update") {
+        setEditingBankId(null);
+      }
+
+      if (actionData.intent === "delete" && actionData.deletedBankId) {
+        setBanksState((prev) => prev.filter((bank) => bank.id !== actionData.deletedBankId));
+      }
+    }
+  }, [actionData, navigation.state]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
@@ -156,20 +177,117 @@ export default function Banks({ loaderData, actionData }: Route.ComponentProps) 
         {showAddForm && (
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100 animate-slideDown">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">เพิ่มบัญชีธนาคารใหม่</h2>
-            <BankForm intent="create" isSubmitting={isSubmitting} actionData={actionData} />
+            <Form
+              method="post"
+              className="space-y-3"
+              onSubmit={(event) => {
+                const formData = new FormData(event.currentTarget);
+                const bankName = (formData.get("bankName") as string)?.trim();
+                const accountNumber = (formData.get("accountNumber") as string)?.trim();
+                const ownerName = (formData.get("ownerName") as string)?.trim();
+
+                if (!bankName || !accountNumber || !ownerName) return;
+
+                setBanksState((prev) => [
+                  ...prev,
+                  {
+                    id: makeTempId(),
+                    bank_name: bankName,
+                    account_number: accountNumber,
+                    owner_name: ownerName,
+                    created_at: nowIso(),
+                    updated_at: nowIso(),
+                  },
+                ]);
+                setShowAddForm(false);
+              }}
+            >
+              <input type="hidden" name="intent" value="create" />
+              <div>
+                <label className="block mb-2 font-medium text-gray-700">
+                  ชื่อธนาคาร
+                </label>
+                <input
+                  type="hidden"
+                  name="bankName"
+                  id="addBankName"
+                  required
+                />
+                <div id="addBankDisplay" className="bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-lg min-h-[48px] flex items-center">
+                  เลือกธนาคารจากรายการด้านล่าง
+                </div>
+                <BankSelector
+                  onSelect={(bank) => {
+                    const input = document.getElementById("addBankName") as HTMLInputElement;
+                    const display = document.getElementById("addBankDisplay");
+                    if (input) input.value = bank.name;
+                    if (display) display.textContent = bank.name;
+                  }}
+                  selectedBank=""
+                />
+              </div>
+
+              <div>
+                <label htmlFor="accountNumber" className="block mb-2 font-medium text-gray-700">
+                  เลขบัญชี
+                </label>
+                <Input
+                  id="accountNumber"
+                  name="accountNumber"
+                  type="text"
+                  required
+                  placeholder="ระบุเลขบัญชี"
+                  className="w-full text-lg px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="ownerName" className="block mb-2 font-medium text-gray-700">
+                  เจ้าของบัญชี / หมายเหตุ
+                </label>
+                <Input
+                  id="ownerName"
+                  name="ownerName"
+                  type="text"
+                  required
+                  placeholder="ระบุชื่อเจ้าของบัญชี"
+                  className="w-full text-lg px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  isLoading={isSubmitting}
+                  kind="primary"
+                  size="sm"
+                  className="flex-1 !h-12 rounded-xl"
+                >
+                  เพิ่มบัญชีธนาคาร
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(false)}
+                  className="inline-flex items-center justify-center !min-h-[48px] px-6 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+                >
+                  ยกเลิก
+                </button>
+              </div>
+            </Form>
           </div>
         )}
 
         {/* Banks List */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {banks.length === 0 ? (
+          {banksState.length === 0 ? (
             <div className="md:col-span-2 bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-lg">
               <FontAwesomeIcon icon={faBuildingColumns} className="text-6xl text-gray-300 mb-4" />
               <h3 className="text-xl font-semibold text-gray-700 mb-2">ยังไม่มีบัญชีธนาคาร</h3>
               <p className="text-gray-500">คลิก "เพิ่มบัญชีธนาคาร" เพื่อเริ่มต้น</p>
             </div>
           ) : (
-            banks.map((bank) => (
+            banksState.map((bank) => (
               <div
                 key={bank.id}
                 className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow"
@@ -178,13 +296,108 @@ export default function Banks({ loaderData, actionData }: Route.ComponentProps) 
                   {editingBankId === bank.id ? (
                     <div className="mb-4">
                       <h3 className="text-lg font-semibold text-gray-800 mb-3">แก้ไขบัญชีธนาคาร</h3>
-                      <BankForm
-                        intent="update"
-                        isSubmitting={isSubmitting}
-                        actionData={actionData}
-                        initialData={bank}
-                        onCancel={() => setEditingBankId(null)}
-                      />
+                      <Form
+                        method="post"
+                        className="space-y-3"
+                        onSubmit={(event) => {
+                          const formData = new FormData(event.currentTarget);
+                          const bankName = (formData.get("bankName") as string)?.trim();
+                          const accountNumber = (formData.get("accountNumber") as string)?.trim();
+                          const ownerName = (formData.get("ownerName") as string)?.trim();
+
+                          if (!bankName || !accountNumber || !ownerName) return;
+
+                          setBanksState((prev) =>
+                            prev.map((item) =>
+                              item.id === bank.id
+                                ? {
+                                    ...item,
+                                    bank_name: bankName,
+                                    account_number: accountNumber,
+                                    owner_name: ownerName,
+                                    updated_at: nowIso(),
+                                  }
+                                : item
+                            )
+                          );
+                          setEditingBankId(null);
+                        }}
+                      >
+                        <input type="hidden" name="intent" value="update" />
+                        <input type="hidden" name="id" value={bank.id.toString()} />
+                        <div>
+                          <label className="block mb-2 font-medium text-gray-700">
+                            ชื่อธนาคาร
+                          </label>
+                          <input
+                            type="hidden"
+                            name="bankName"
+                            id={`editBankName_${bank.id}`}
+                            value={bank.bank_name}
+                            required
+                          />
+                          <div id={`editBankDisplay_${bank.id}`} className="bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-lg min-h-[48px] flex items-center">
+                            {bank.bank_name}
+                          </div>
+                          <BankSelector
+                            onSelect={(selectedBank) => {
+                              const input = document.getElementById(`editBankName_${bank.id}`) as HTMLInputElement;
+                              const display = document.getElementById(`editBankDisplay_${bank.id}`);
+                              if (input) input.value = selectedBank.name;
+                              if (display) display.textContent = selectedBank.name;
+                            }}
+                            selectedBank={bank.bank_name}
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="accountNumber" className="block mb-2 font-medium text-gray-700">
+                            เลขบัญชี
+                          </label>
+                          <Input
+                            id="accountNumber"
+                            name="accountNumber"
+                            type="text"
+                            required
+                            defaultValue={bank.account_number}
+                            className="w-full text-lg px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="ownerName" className="block mb-2 font-medium text-gray-700">
+                            เจ้าของบัญชี / หมายเหตุ
+                          </label>
+                          <Input
+                            id="ownerName"
+                            name="ownerName"
+                            type="text"
+                            required
+                            defaultValue={bank.owner_name}
+                            className="w-full text-lg px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          />
+                        </div>
+
+                        <div className="flex gap-3">
+                          <Button
+                            type="submit"
+                            disabled={isSubmitting}
+                            isLoading={isSubmitting}
+                            kind="primary"
+                            size="sm"
+                            className="flex-1 !h-12 rounded-xl"
+                          >
+                            บันทึก
+                          </Button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingBankId(null)}
+                            className="inline-flex items-center justify-center !min-h-[48px] px-6 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+                          >
+                            ยกเลิก
+                          </button>
+                        </div>
+                      </Form>
                     </div>
                   ) : (
                     <>
@@ -218,21 +431,27 @@ export default function Banks({ loaderData, actionData }: Route.ComponentProps) 
                           <FontAwesomeIcon icon={faPen} className="h-4 w-4" />
                           แก้ไข
                         </button>
-                        <button
-                          onClick={() => {
-                            if (confirm("คุณต้องการลบบัญชีธนาคารนี้ใช่หรือไม่?")) {
-                              const formData = new FormData();
-                              formData.append("intent", "delete");
-                              formData.append("id", bank.id.toString());
-                              fetch("/banks", { method: "POST", body: formData })
-                                .then(() => window.location.reload());
+                        <Form
+                          method="post"
+                          onSubmit={(event) => {
+                            if (!confirm("คุณต้องการลบบัญชีธนาคารนี้ใช่หรือไม่?")) {
+                              event.preventDefault();
+                              return;
                             }
+
+                            setBanksState((prev) => prev.filter((item) => item.id !== bank.id));
                           }}
-                          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors font-medium cursor-pointer"
                         >
-                          <FontAwesomeIcon icon={faTrash} className="h-4 w-4" />
-                          ลบ
-                        </button>
+                          <input type="hidden" name="intent" value="delete" />
+                          <input type="hidden" name="id" value={bank.id.toString()} />
+                          <button
+                            type="submit"
+                            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors font-medium cursor-pointer"
+                          >
+                            <FontAwesomeIcon icon={faTrash} className="h-4 w-4" />
+                            ลบ
+                          </button>
+                        </Form>
                       </div>
                     </>
                   )}
@@ -263,7 +482,7 @@ export default function Banks({ loaderData, actionData }: Route.ComponentProps) 
 interface BankFormProps {
   intent: "create" | "update";
   isSubmitting: boolean;
-  actionData?: { success?: string; error?: string };
+  actionData?: { success?: string; error?: string; intent?: string };
   initialData?: Bank;
   onCancel?: () => void;
 }

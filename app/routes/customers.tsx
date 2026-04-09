@@ -52,7 +52,7 @@ export async function action({ context, request }: Route.ActionArgs) {
           return { error: "กรุณาระบุชื่อลูกค้า" };
         }
         await createCustomer(db, name.trim());
-        return { success: "เพิ่มลูกค้าเรียบร้อย" };
+        return { success: "เพิ่มลูกค้าเรียบร้อย", intent: "create" };
       }
 
       case "update": {
@@ -62,7 +62,7 @@ export async function action({ context, request }: Route.ActionArgs) {
           return { error: "ข้อมูลไม่ถูกต้อง" };
         }
         await updateCustomer(db, id, name.trim());
-        return { success: "แก้ไขลูกค้าเรียบร้อย" };
+        return { success: "แก้ไขลูกค้าเรียบร้อย", intent: "update", customerId: id };
       }
 
       case "delete": {
@@ -71,7 +71,7 @@ export async function action({ context, request }: Route.ActionArgs) {
           return { error: "ข้อมูลไม่ถูกต้อง" };
         }
         await deleteCustomer(db, id);
-        return { success: "ลบลูกค้าเรียบร้อย" };
+        return { success: "ลบลูกค้าเรียบร้อย", intent: "delete", deletedCustomerId: id };
       }
 
       default:
@@ -93,10 +93,33 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
   const [editingCustomerId, setEditingCustomerId] = useState<number | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const makeTempId = () => -Date.now();
+  const nowIso = () => new Date().toISOString();
 
   useEffect(() => {
     setCustomerList(customers);
   }, [customers]);
+
+  useEffect(() => {
+    if (!actionData) return;
+
+    if (actionData.success) {
+      if (actionData.intent === "create") {
+        setShowAddForm(false);
+      }
+
+      if (actionData.intent === "update") {
+        setEditingCustomerId(null);
+      }
+
+      if (actionData.intent === "delete" && actionData.deletedCustomerId) {
+        setCustomerList((prev) => prev.filter((customer) => customer.id !== actionData.deletedCustomerId));
+        if (editingCustomerId === actionData.deletedCustomerId) {
+          setEditingCustomerId(null);
+        }
+      }
+    }
+  }, [actionData, navigation.state]);
 
   const filteredCustomers = customerList.filter((customer) =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -146,11 +169,58 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
         {/* Add Customer Form */}
         {showAddForm && (
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100 animate-slideDown"><h2 className="text-2xl font-bold text-gray-800 mb-4">เพิ่มลูกค้าใหม่</h2>
-            <Form method="post" className="space-y-4 flex gap-4 items-end">
+            <Form
+              method="post"
+              className="space-y-4 flex gap-4 items-end"
+              onSubmit={(event) => {
+                const formData = new FormData(event.currentTarget);
+                const name = (formData.get("name") as string)?.trim();
+                if (!name) return;
+
+                setCustomerList((prev) => [
+                  ...prev,
+                  {
+                    id: makeTempId(),
+                    name,
+                    created_at: nowIso(),
+                    updated_at: nowIso(),
+                  },
+                ]);
+                setShowAddForm(false);
+              }}
+            >
               <input type="hidden" name="intent" value="create" />
               <div className="flex-1 mb-0">
-                <label htmlFor="name" className="block mb-2 font-medium text-gray-700">ชื่อลูกค้า</label>
-                <Input id="name" name="name" type="text" required placeholder="ระบุชื่อลูกค้า" className="w-full text-lg px-4 !py-4.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent" /></div><div className="flex gap-3"><Button type="submit" disabled={isSubmitting} isLoading={isSubmitting} className="inline-flex items-center justify-center flex-1 !min-h-[44px] !max-h-[44px] bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-6 rounded-xl font-medium shadow-md hover:shadow-lg transition-all">เพิ่มลูกค้า</Button><button type="button" onClick={() => setShowAddForm(false)} className="inline-flex !text-sm items-center justify-center !min-h-[44px] !max-h-[44px] px-6 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium">ยกเลิก</button></div></Form>
+                <label htmlFor="name" className="block mb-2 font-medium text-gray-700">
+                  ชื่อลูกค้า
+                </label>
+                <Input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  placeholder="ระบุชื่อลูกค้า"
+                  className="w-full text-lg px-4 !py-4.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  isLoading={isSubmitting}
+                  className="inline-flex items-center justify-center flex-1 !min-h-[44px] !max-h-[44px] bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-6 rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
+                >
+                  เพิ่มลูกค้า
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(false)}
+                  className="inline-flex !text-sm items-center justify-center !min-h-[44px] !max-h-[44px] px-6 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+                >
+                  ยกเลิก
+                </button>
+              </div>
+            </Form>
        
           </div>
         )}
@@ -214,25 +284,20 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
                           <Form
                             method="post"
                             className="flex gap-2 items-center"
-                            onSubmit={(e) => {
-                              e.preventDefault();
-                              const form = e.currentTarget;
-                              const formData = new FormData(form);
+                            onSubmit={(event) => {
+                              const formData = new FormData(event.currentTarget);
                               const nextName = (formData.get("name") as string | null)?.trim();
 
-                              // Exit edit mode instantly and update row immediately.
                               setEditingCustomerId(null);
                               if (nextName) {
                                 setCustomerList((prev) =>
                                   prev.map((item) =>
                                     item.id === customer.id
-                                      ? { ...item, name: nextName, updated_at: new Date().toISOString() }
+                                      ? { ...item, name: nextName, updated_at: nowIso() }
                                       : item
                                   )
                                 );
                               }
-
-                              void fetch("/customers", { method: "POST", body: formData });
                             }}
                           >
                             <input type="hidden" name="intent" value="update" />
@@ -292,27 +357,30 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
                               >
                                 <FontAwesomeIcon icon={faPen} className="h-4 w-4" />
                               </button>
-                              <button
-                                onClick={() => {
-                                  if (confirm(`คุณต้องการลบลูกค้า "${customer.name}" ใช่หรือไม่?`)) {
-                                    const formData = new FormData();
-                                    formData.append("intent", "delete");
-                                    formData.append("id", customer.id.toString());
+                              <Form
+                                method="post"
+                                onSubmit={(event) => {
+                                  if (!confirm(`คุณต้องการลบลูกค้า "${customer.name}" ใช่หรือไม่?`)) {
+                                    event.preventDefault();
+                                    return;
+                                  }
 
-                                    // Remove row instantly from UI.
-                                    setCustomerList((prev) => prev.filter((item) => item.id !== customer.id));
-                                    if (editingCustomerId === customer.id) {
-                                      setEditingCustomerId(null);
-                                    }
-
-                                    void fetch("/customers", { method: "POST", body: formData });
+                                  setCustomerList((prev) => prev.filter((item) => item.id !== customer.id));
+                                  if (editingCustomerId === customer.id) {
+                                    setEditingCustomerId(null);
                                   }
                                 }}
-                                className="inline-flex items-center justify-center !min-h-[36px] !max-h-[36px] px-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-                                title="ลบ"
                               >
-                                <FontAwesomeIcon icon={faTrash} className="h-4 w-4" />
-                              </button>
+                                <input type="hidden" name="intent" value="delete" />
+                                <input type="hidden" name="id" value={customer.id.toString()} />
+                                <button
+                                  type="submit"
+                                  className="inline-flex items-center justify-center !min-h-[36px] !max-h-[36px] px-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                                  title="ลบ"
+                                >
+                                  <FontAwesomeIcon icon={faTrash} className="h-4 w-4" />
+                                </button>
+                              </Form>
                             </>
                           )}
                         </div>

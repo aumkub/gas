@@ -238,14 +238,14 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                 type="submit"
                 disabled={isSubmitting}
                 isLoading={isSubmitting}
-                className="!px-6 !py-3 !bg-gradient-to-r !from-purple-500 !to-blue-500 hover:!from-purple-600 hover:!to-blue-600 !text-white !rounded-xl !font-medium !shadow-md hover:!shadow-lg !transition-all"
+                className="!min-h-auto !max-h-auto !px-6 !py-4 !text-sm !bg-gradient-to-r !from-purple-500 !to-blue-500 hover:!from-purple-600 hover:!to-blue-600 !text-white !rounded-xl !font-medium !shadow-md hover:!shadow-lg !transition-all"
               >
                 เพิ่มสินค้า
               </Button>
               <button
                 type="button"
                 onClick={() => setShowAddForm(false)}
-                className="!inline-flex !items-center !justify-center !px-6 !py-3 !bg-gray-100 !text-gray-700 !rounded-xl hover:!bg-gray-200 !transition-colors !font-medium"
+                className="!min-h-auto !max-h-auto !inline-flex !items-center !justify-center !px-6 !py-1.5 !text-sm !bg-gray-100 !text-gray-700 !rounded-xl hover:!bg-gray-200 !transition-colors !font-medium"
               >
                 ยกเลิก
               </button>
