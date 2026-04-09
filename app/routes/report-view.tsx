@@ -1,5 +1,11 @@
 import type { Route } from "./+types/report-view";
-import { redirect, useLoaderData, useNavigation, useSubmit } from "react-router";
+import {
+  redirect,
+  useLoaderData,
+  useNavigate,
+  useNavigation,
+  useSubmit,
+} from "react-router";
 import { requireAuth } from "~/lib/session";
 import {
   getReportByDate,
@@ -87,6 +93,7 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
     loaderData;
 
   const navigation = useNavigation();
+  const navigate = useNavigate();
   const submit = useSubmit();
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const qrCodeRef = useRef<SVGSVGElement>(null);
@@ -138,9 +145,21 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
     }
   }, [actionData]);
 
+  const handleGoBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] px-4 py-8">
       <div className="max-w-7xl mx-auto">
+        <div className="mb-4">
+          <Button onClick={handleGoBack}>กลับหน้าก่อนหน้า</Button>
+        </div>
+
         <ReportSummary
           reportDate={reportDate}
           salesItems={salesItems}

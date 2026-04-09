@@ -6,9 +6,13 @@ import {
 	Scripts,
 	ScrollRestoration,
 } from "react-router";
+import { config } from "@fortawesome/fontawesome-svg-core";
+import "@fortawesome/fontawesome-svg-core/styles.css";
 
 import type { Route } from "./+types/root";
 import "./app.css";
+
+config.autoAddCss = false;
 
 export const links: Route.LinksFunction = () => [
 	{ rel: "preconnect", href: "https://fonts.googleapis.com" },

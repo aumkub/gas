@@ -18,7 +18,7 @@ import { THAI_BANKS } from "~/lib/thai-banks";
 import { AutoComplete } from "~/components/AutoComplete";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faArrowBack,
+  faArrowLeft,
   faPlus,
   faBuildingColumns,
   faCreditCard,
@@ -26,6 +26,7 @@ import {
   faPen,
   faTrash,
   faCheck,
+  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 
 export function meta({}: Route.MetaArgs) {
@@ -136,14 +137,14 @@ export default function Banks({ loaderData, actionData }: Route.ComponentProps) 
                   href="/"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
                 >
-                  <FontAwesomeIcon icon={faArrowBack} />
+                  <FontAwesomeIcon icon={faArrowLeft} className="h-4 w-4" />
                   กลับหน้าหลัก
                 </a>
                 <button
                   onClick={() => setShowAddForm(!showAddForm)}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl hover:from-green-600 hover:to-blue-600 transition-all shadow-md hover:shadow-lg font-medium"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl hover:from-green-600 hover:to-blue-600 transition-all shadow-md hover:shadow-lg font-medium cursor-pointer"
                 >
-                  <FontAwesomeIcon icon={faPlus} />
+                  <FontAwesomeIcon icon={faPlus} className="h-4 w-4" />
                   {showAddForm ? "ปิดฟอร์ม" : "เพิ่มบัญชีธนาคาร"}
                 </button>
               </div>
@@ -212,7 +213,7 @@ export default function Banks({ loaderData, actionData }: Route.ComponentProps) 
                       <div className="flex gap-2">
                         <button
                           onClick={() => setEditingBankId(bank.id)}
-                          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors font-medium"
+                          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors font-medium cursor-pointer"
                         >
                           <FontAwesomeIcon icon={faPen} className="h-4 w-4" />
                           แก้ไข
@@ -227,7 +228,7 @@ export default function Banks({ loaderData, actionData }: Route.ComponentProps) 
                                 .then(() => window.location.reload());
                             }
                           }}
-                          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors font-medium"
+                          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors font-medium cursor-pointer"
                         >
                           <FontAwesomeIcon icon={faTrash} className="h-4 w-4" />
                           ลบ
@@ -244,15 +245,13 @@ export default function Banks({ loaderData, actionData }: Route.ComponentProps) 
         {/* Toast Messages */}
         {actionData?.success && (
           <div className="fixed bottom-4 right-4 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl shadow-lg animate-slideUp flex items-center gap-2">
-            <FontAwesomeIcon icon={faCheck} />
+            <FontAwesomeIcon icon={faCheck} className="h-4 w-4" />
             {actionData.success}
           </div>
         )}
         {actionData?.error && (
           <div className="fixed bottom-4 right-4 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl shadow-lg animate-slideUp flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <FontAwesomeIcon icon={faXmark} className="h-4 w-4" />
             {actionData.error}
           </div>
         )}
@@ -379,7 +378,7 @@ function BankSelector({ onSelect, selectedBank }: BankSelectorProps) {
             key={bank.code}
             type="button"
             onClick={() => onSelect(bank)}
-            className={`text-left px-3 py-2.5 rounded-lg border text-base transition-all font-medium ${
+            className={`text-left px-3 py-2.5 rounded-lg border text-base transition-all font-medium cursor-pointer ${
               selectedBank === bank.name
                 ? "bg-gradient-to-r from-green-500 to-blue-500 text-white border-transparent shadow-md"
                 : "bg-white hover:bg-gradient-to-r hover:from-green-50 hover:to-blue-50 border-gray-300 hover:border-green-400"

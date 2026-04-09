@@ -4,6 +4,15 @@ import { requireAuth } from "~/lib/session";
 import { getReportsByMonth } from "~/lib/db";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, parseISO, isToday, getMonth, getYear } from "date-fns";
 import { th } from "date-fns/locale";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faBoxOpen,
+  faBuildingColumns,
+  faChevronLeft,
+  faChevronRight,
+  faHand,
+  faRightFromBracket,
+} from "@fortawesome/free-solid-svg-icons";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -126,7 +135,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   รายงานการขายประจำวัน
                 </h1>
                 <p className="text-gray-600 text-lg flex items-center gap-2">
-                  <span className="text-2xl">👋</span>
+                  <FontAwesomeIcon icon={faHand} className="text-xl text-amber-500" />
                   ยินดีต้อนรับ, <span className="font-semibold text-blue-600">{user.username}</span>
                 </p>
               </div>
@@ -134,9 +143,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 href="/logout"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all shadow-md hover:shadow-lg font-medium"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
+                <FontAwesomeIcon icon={faRightFromBracket} className="h-5 w-5" />
                 ออกจากระบบ
               </a>
             </div>
@@ -151,8 +158,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative z-10 flex items-center gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-2xl shadow-lg group-hover:scale-110 transition-transform">
-                📦
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <FontAwesomeIcon icon={faBoxOpen} className="text-2xl text-white" />
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">จัดการสินค้า</h3>
@@ -166,8 +173,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-50 to-green-100 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative z-10 flex items-center gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center text-2xl shadow-lg group-hover:scale-110 transition-transform">
-                🏦
+              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <FontAwesomeIcon icon={faBuildingColumns} className="text-2xl text-white" />
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-800 group-hover:text-green-600 transition-colors">จัดการธนาคาร</h3>
@@ -182,11 +189,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           <div className="flex items-center justify-between">
             <button
               onClick={goToPrevMonth}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg font-medium"
+              className="inline-flex items-center cursor-pointer gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg font-medium"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
+              <FontAwesomeIcon icon={faChevronLeft} className="h-5 w-5" />
               เดือนก่อนหน้า
             </button>
             <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -194,12 +199,10 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             </h2>
             <button
               onClick={goToNextMonth}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg font-medium"
+              className="inline-flex items-center cursor-pointer gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg font-medium"
             >
               เดือนถัดไป
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+              <FontAwesomeIcon icon={faChevronRight} className="h-5 w-5" />
             </button>
           </div>
         </div>
