@@ -38,6 +38,13 @@ import { CheckGroup } from "~/components/CheckGroup";
 import type { CheckItem } from "~/components/CheckGroup";
 import { calculateGrandTotal, formatCurrency } from "~/lib/calculations";
 import type { ProductPrice } from "~/lib/db";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faFileLines,
+  faEye,
+  faFloppyDisk,
+  faHouse,
+} from "@fortawesome/free-solid-svg-icons";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -482,12 +489,20 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
           <div className="mb-3 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="relative z-10">
               <Heading styleLevel={1} className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-2xl text-transparent md:text-3xl">
-                รายงานการขายวันที่{" "}
-                {format(new Date(reportDate), "d MMMM yyyy", { locale: th })}
+                <span className="inline-flex items-center gap-2">
+                  <FontAwesomeIcon
+                    icon={faFileLines}
+                    className="h-6 w-6 shrink-0 text-purple-600"
+                  />
+                  <span>
+                    รายงานการขายวันที่{" "}
+                    {format(new Date(reportDate), "d MMMM yyyy", { locale: th })}
+                  </span>
+                </span>
               </Heading>
-              <p className="mt-1 text-sm text-gray-600">
+              {/* <p className="mt-1 text-sm text-gray-600">
                 {isEditing ? "แก้ไขรายงาน" : "สร้างรายงานใหม่"}
-              </p>
+              </p> */}
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
@@ -504,6 +519,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
                   },
                 }}
               >
+                <FontAwesomeIcon icon={faEye} className="mr-2 h-4 w-4" />
                 ดูรายงาน
               </Button>
             </div>
@@ -530,6 +546,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
                 href="/"
                 className="inline-flex h-[36px] min-h-[36px] items-center justify-center rounded-lg bg-gray-100 px-3 text-sm text-gray-700 transition-colors hover:bg-gray-200"
               >
+                <FontAwesomeIcon icon={faHouse} className="mr-2 h-4 w-4" />
                 กลับหน้าหลัก
               </a>
               <Button
@@ -547,6 +564,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
                 }}
                 className="bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 hover:shadow-md"
               >
+                <FontAwesomeIcon icon={faFloppyDisk} className="mr-2 h-4 w-4" />
                 บันทึกทันที
               </Button>
             </div>

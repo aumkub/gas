@@ -19,6 +19,8 @@ import { Button } from "~/components/ui/button";
 import { Modal, SIZE } from "~/components/ui/modal";
 import { useState, useEffect, useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft, faCopy, faComments, faXmark } from "@fortawesome/free-solid-svg-icons";
 
 export async function action({ context, request }: Route.ActionArgs) {
   const { user } = await requireAuth(request, context.cloudflare.env.DB);
@@ -154,10 +156,17 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 px-4 py-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-4">
-          <Button onClick={handleGoBack}>กลับหน้าก่อนหน้า</Button>
+          <Button
+            onClick={handleGoBack}
+            kind="tertiary"
+            className="hover:bg-gray-200"
+          >
+            <FontAwesomeIcon icon={faArrowLeft} className="mr-2 h-4 w-4" />
+            กลับหน้าก่อนหน้า
+          </Button>
         </div>
 
         <ReportSummary
@@ -173,20 +182,22 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
 
         {/* Share Link Modal */}
         {shareUrl && (
-          <Modal
-            isOpen={!!shareUrl}
-            onClose={() => setShareUrl(null)}
-            size={SIZE.default}
-            overrides={{
-              Root: {
-                style: {
-                  zIndex: 2000,
+            <Modal
+              isOpen={!!shareUrl}
+              onClose={() => setShareUrl(null)}
+              size={SIZE.default}
+              overrides={{
+                Root: {
+                  style: {
+                    zIndex: 2000,
+                  },
                 },
-              },
-            }}
-          >
-            <div className="p-6">
-              <h3 className="text-2xl font-semibold mb-4">แชร์รายงาน</h3>
+              }}
+            >
+              <div className="p-6">
+              <h3 className="mb-4 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-2xl font-semibold text-transparent">
+                แชร์รายงาน
+              </h3>
 
               <div className="mb-4">
                 <label className="block mb-2 font-medium text-lg">
@@ -244,7 +255,9 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
                       },
                     },
                   }}
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600"
                 >
+                  <FontAwesomeIcon icon={faCopy} className="mr-2 h-4 w-4" />
                   คัดลอกลิงก์
                 </Button>
                 <Button
@@ -262,7 +275,9 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
                       },
                     },
                   }}
+                  className="bg-gradient-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600"
                 >
+                  <FontAwesomeIcon icon={faComments} className="mr-2 h-4 w-4" />
                   แชร์ผ่าน LINE
                 </Button>
               </div>
@@ -270,18 +285,21 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
               <div className="mt-4 flex justify-end">
                 <Button
                   onClick={() => setShareUrl(null)}
+                  kind="tertiary"
                   overrides={{
                     Root: {
                       style: {
                       },
                     },
                   }}
+                  className="hover:bg-gray-200"
                 >
+                  <FontAwesomeIcon icon={faXmark} className="mr-2 h-4 w-4" />
                   ปิด
                 </Button>
               </div>
-            </div>
-          </Modal>
+              </div>
+            </Modal>
         )}
       </div>
     </div>

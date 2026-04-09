@@ -5,6 +5,12 @@ import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import { formatCurrency } from "~/lib/calculations";
 import type { SalesItem, BillHoldItem, CheckItem } from "~/lib/db";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faPenToSquare,
+  faShareNodes,
+  faFileLines,
+} from "@fortawesome/free-solid-svg-icons";
 
 interface ReportSummaryProps {
   reportDate: string;
@@ -51,8 +57,16 @@ export function ReportSummary({
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div className="w-full sm:w-auto">
             <Heading styleLevel={1} className="text-xl sm:text-2xl break-words">
-              รายงานการขายวันที่{" "}
-              {format(new Date(reportDate), "d MMMM yyyy", { locale: th })}
+              <span className="inline-flex items-center gap-2">
+                <FontAwesomeIcon
+                  icon={faFileLines}
+                  className="h-5 w-5 shrink-0 text-purple-600"
+                />
+                <span>
+                  รายงานการขายวันที่{" "}
+                  {format(new Date(reportDate), "d MMMM yyyy", { locale: th })}
+                </span>
+              </span>
             </Heading>
           </div>
           {!isReadOnly && (
@@ -71,6 +85,7 @@ export function ReportSummary({
                     },
                   }}
                 >
+                  <FontAwesomeIcon icon={faPenToSquare} className="mr-2 h-4 w-4" />
                   แก้ไขรายงาน
                 </Button>
               )}
@@ -88,6 +103,7 @@ export function ReportSummary({
                     },
                   }}
                 >
+                  <FontAwesomeIcon icon={faShareNodes} className="mr-2 h-4 w-4" />
                   แชร์รายงาน
                 </Button>
               )}

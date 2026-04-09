@@ -346,7 +346,7 @@ function ProductRow({
   const availablePrices = selectedProduct?.prices || [];
 
   return (
-    <div className="grid grid-cols-12 items-end gap-2 rounded-lg bg-gray-50 py-0 p-2.5">
+    <div className="grid grid-cols-12 items-end gap-2 rounded-lg py-0 p-2.5">
       {/* Product Name */}
       <div className="col-span-4">
         <AutoComplete
