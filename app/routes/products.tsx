@@ -1,5 +1,5 @@
 import type { Route } from "./+types/products";
-import { redirect, useLoaderData, useNavigation, Form } from "react-router";
+import { useNavigation, Form } from "react-router";
 import { requireAuth } from "~/lib/session";
 import {
   getProductsPrices,
@@ -10,13 +10,9 @@ import {
   updateProductPrice,
   deleteProductPrice,
 } from "~/lib/db";
-import type { Product, ProductPrice } from "~/lib/db";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
-import { Card } from "~/components/Card";
-import { Heading } from "~/components/Heading";
 import { Input } from "~/components/ui/input";
-import { Modal, SIZE } from "~/components/ui/modal";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -46,7 +42,7 @@ export async function action({ context, request }: Route.ActionArgs) {
           return { error: "กรุณาระบุชื่อสินค้า" };
         }
         await createProduct(db, name.trim());
-        return { success: "เพิ่มสินค้าเรียบร้อย" };
+        return { success: "เพิ่มสินค้าเรียบร้อย", intent: "create" };
       }
 
       case "update": {
@@ -56,7 +52,7 @@ export async function action({ context, request }: Route.ActionArgs) {
           return { error: "ข้อมูลไม่ถูกต้อง" };
         }
         await updateProduct(db, id, name.trim());
-        return { success: "แก้ไขสินค้าเรียบร้อย" };
+        return { success: "แก้ไขสินค้าเรียบร้อย", intent: "update", productId: id };
       }
 
       case "delete": {
@@ -65,7 +61,7 @@ export async function action({ context, request }: Route.ActionArgs) {
           return { error: "ข้อมูลไม่ถูกต้อง" };
         }
         await deleteProduct(db, id);
-        return { success: "ลบสินค้าเรียบร้อย" };
+        return { success: "ลบสินค้าเรียบร้อย", intent: "delete", deletedProductId: id };
       }
 
       case "add-price": {
@@ -76,7 +72,7 @@ export async function action({ context, request }: Route.ActionArgs) {
           return { error: "ข้อมูลไม่ถูกต้อง" };
         }
         await addProductPrice(db, productId, price, priceLabel || null);
-        return { success: "เพิ่มราคาเรียบร้อย" };
+        return { success: "เพิ่มราคาเรียบร้อย", intent: "add-price", productId };
       }
 
       case "update-price": {
@@ -87,7 +83,7 @@ export async function action({ context, request }: Route.ActionArgs) {
           return { error: "ข้อมูลไม่ถูกต้อง" };
         }
         await updateProductPrice(db, id, price, priceLabel || null);
-        return { success: "แก้ไขราคาเรียบร้อย" };
+        return { success: "แก้ไขราคาเรียบร้อย", intent: "update-price", priceId: id };
       }
 
       case "delete-price": {
@@ -96,7 +92,7 @@ export async function action({ context, request }: Route.ActionArgs) {
           return { error: "ข้อมูลไม่ถูกต้อง" };
         }
         await deleteProductPrice(db, id);
-        return { success: "ลบราคาเรียบร้อย" };
+        return { success: "ลบราคาเรียบร้อย", intent: "delete-price", deletedPriceId: id };
       }
 
       default:
@@ -117,6 +113,48 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
   const [addingPriceProductId, setAddingPriceProductId] = useState<number | null>(null);
   const [editingPriceId, setEditingPriceId] = useState<number | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [productsState, setProductsState] = useState(products);
+  const makeTempId = () => -Date.now();
+  const nowIso = () => new Date().toISOString();
+
+  useEffect(() => {
+    setProductsState(products);
+  }, [products]);
+
+  useEffect(() => {
+    if (!actionData) return;
+
+    if (actionData.success) {
+      if (actionData.intent === "create") {
+        setShowAddForm(false);
+      }
+
+      if (actionData.intent === "update") {
+        setEditingProductId(null);
+      }
+
+      if (actionData.intent === "update-price") {
+        setEditingPriceId(null);
+      }
+
+      if (actionData.intent === "add-price") {
+        setAddingPriceProductId(null);
+      }
+
+      if (actionData.intent === "delete" && actionData.deletedProductId) {
+        setProductsState((prev) => prev.filter((product) => product.id !== actionData.deletedProductId));
+      }
+
+      if (actionData.intent === "delete-price" && actionData.deletedPriceId) {
+        setProductsState((prev) =>
+          prev.map((product) => ({
+            ...product,
+            prices: product.prices.filter((price) => price.id !== actionData.deletedPriceId),
+          })),
+        );
+      }
+    }
+  }, [actionData, navigation.state]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
@@ -163,52 +201,68 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
         {showAddForm && (
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100 animate-slideDown">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">เพิ่มสินค้าใหม่</h2>
-            <Form method="post" className="space-y-4">
+            <Form
+              method="post"
+              className="flex items-center gap-3"
+              onSubmit={(event) => {
+                const formData = new FormData(event.currentTarget);
+                const name = (formData.get("name") as string)?.trim();
+                if (!name) return;
+
+                setProductsState((prev) => [
+                  ...prev,
+                  {
+                    id: makeTempId(),
+                    name,
+                    created_at: nowIso(),
+                    updated_at: nowIso(),
+                    prices: [],
+                  },
+                ]);
+                setShowAddForm(false);
+              }}
+            >
               <input type="hidden" name="intent" value="create" />
-              <div>
-                <label htmlFor="name" className="block mb-2 font-medium text-gray-700">
-                  ชื่อสินค้า
-                </label>
-                <Input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  placeholder="ระบุชื่อสินค้า"
-                  className="w-full text-lg px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  isLoading={isSubmitting}
-                  className="!flex-1 !px-6 !py-2 !bg-gradient-to-r !from-purple-500 !to-blue-500 hover:!from-purple-600 hover:!to-blue-600 !text-white !py-3 !px-6 !rounded-xl !font-medium !shadow-md hover:!shadow-lg !transition-all"
-                >
-                  เพิ่มสินค้า
-                </Button>
-                <button
-                  type="button"
-                  onClick={() => setShowAddForm(false)}
-                  className="!inline-flex !items-center !justify-center !px-6 !py-2 !bg-gray-100 !text-gray-700 !rounded-xl hover:!bg-gray-200 !transition-colors !font-medium"
-                >
-                  ยกเลิก
-                </button>
-              </div>
+              <label htmlFor="name" className="sr-only">
+                ชื่อสินค้า
+              </label>
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                required
+                placeholder="ระบุชื่อสินค้า"
+                className="flex-1 text-lg px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                isLoading={isSubmitting}
+                className="!px-6 !py-3 !bg-gradient-to-r !from-purple-500 !to-blue-500 hover:!from-purple-600 hover:!to-blue-600 !text-white !rounded-xl !font-medium !shadow-md hover:!shadow-lg !transition-all"
+              >
+                เพิ่มสินค้า
+              </Button>
+              <button
+                type="button"
+                onClick={() => setShowAddForm(false)}
+                className="!inline-flex !items-center !justify-center !px-6 !py-3 !bg-gray-100 !text-gray-700 !rounded-xl hover:!bg-gray-200 !transition-colors !font-medium"
+              >
+                ยกเลิก
+              </button>
             </Form>
           </div>
         )}
 
         {/* Products List */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {products.length === 0 ? (
+          {productsState.length === 0 ? (
             <div className="md:col-span-2 bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-lg">
               <div className="text-6xl mb-4">📦</div>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">ยังไม่มีสินค้า</h3>
               <p className="text-gray-500">คลิก "เพิ่มสินค้า" เพื่อเริ่มต้น</p>
             </div>
           ) : (
-            products.map((product) => (
+            productsState.map((product) => (
               <div
                 key={product.id}
                 className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow h-full flex flex-col"
@@ -216,7 +270,27 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                 <div className="p-4 h-full flex flex-col">
                   {/* Product Header */}
                   {editingProductId === product.id ? (
-                    <Form method="post" className="mb-3">
+                    <Form
+                      method="post"
+                      className="mb-3"
+                      onSubmit={(event) => {
+                        const formData = new FormData(event.currentTarget);
+                        const nextName = (formData.get("name") as string)?.trim();
+                        if (!nextName) return;
+
+                        setProductsState((prev) =>
+                          prev.map((item) =>
+                            item.id === product.id
+                              ? {
+                                  ...item,
+                                  name: nextName,
+                                }
+                              : item,
+                          ),
+                        );
+                        setEditingProductId(null);
+                      }}
+                    >
                       <input type="hidden" name="intent" value="update" />
                       <input type="hidden" name="id" value={product.id.toString()} />
                       <div className="flex gap-2">
@@ -239,7 +313,7 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                         <button
                           type="button"
                           onClick={() => setEditingProductId(null)}
-                          className="!min-h-auto !max-h-auto !inline-flex !items-center !justify-center !text-sm !font-medium !px-3 !py-2 !bg-gray-200 !text-gray-700 !rounded-lg hover:!bg-gray-300 !transition-colors"
+                          className="!min-h-auto !max-h-auto !inline-flex !items-center !justify-center !text-sm !font-medium !px-3 !py-1 !bg-gray-200 !text-gray-700 !rounded-lg hover:!bg-gray-300 !transition-colors"
                         >
                           ยกเลิก
                         </button>
@@ -258,23 +332,29 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
                         </button>
-                        <button
-                          onClick={() => {
-                            if (confirm("คุณต้องการลบสินค้านี้ใช่หรือไม่?")) {
-                              const formData = new FormData();
-                              formData.append("intent", "delete");
-                              formData.append("id", product.id.toString());
-                              fetch("/products", { method: "POST", body: formData })
-                                .then(() => window.location.reload());
+                        <Form
+                          method="post"
+                          onSubmit={(event) => {
+                            if (!confirm("คุณต้องการลบสินค้านี้ใช่หรือไม่?")) {
+                              event.preventDefault();
+                              return;
                             }
+
+                            setProductsState((prev) => prev.filter((item) => item.id !== product.id));
                           }}
-                          className="!inline-flex !items-center !justify-center !min-h-auto !max-h-auto !text-sm !px-2 !py-2 !bg-red-50 !text-red-600 !rounded-lg hover:!bg-red-100 !transition-colors"
-                          title="ลบ"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
+                          <input type="hidden" name="intent" value="delete" />
+                          <input type="hidden" name="id" value={product.id.toString()} />
+                          <button
+                            type="submit"
+                            className="!inline-flex !items-center !justify-center !min-h-auto !max-h-auto !text-sm !px-2 !py-2 !bg-red-50 !text-red-600 !rounded-lg hover:!bg-red-100 !transition-colors"
+                            title="ลบ"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </Form>
                       </div>
                     </div>
                   )}
@@ -282,7 +362,36 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                   {/* Add Price Form */}
                   {addingPriceProductId === product.id && (
                     <div className="mb-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
-                      <Form method="post">
+                      <Form
+                        method="post"
+                        onSubmit={(event) => {
+                          const formData = new FormData(event.currentTarget);
+                          const rawPrice = formData.get("price") as string;
+                          const priceLabel = (formData.get("priceLabel") as string) || "";
+                          const nextPrice = Number.parseFloat(rawPrice);
+                          if (Number.isNaN(nextPrice) || nextPrice <= 0) return;
+
+                          setProductsState((prev) =>
+                            prev.map((item) =>
+                              item.id === product.id
+                                ? {
+                                    ...item,
+                                    prices: [
+                                      ...item.prices,
+                                      {
+                                        id: makeTempId(),
+                                        product_id: product.id,
+                                        price: nextPrice,
+                                        price_label: priceLabel.trim() || null,
+                                      },
+                                    ],
+                                  }
+                                : item,
+                            ),
+                          );
+                          setAddingPriceProductId(null);
+                        }}
+                      >
                         <input type="hidden" name="intent" value="add-price" />
                         <input type="hidden" name="productId" value={product.id.toString()} />
                         <div className="flex gap-2 flex-wrap">
@@ -331,7 +440,33 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                             className="inline-flex items-center gap-1 bg-gray-50 rounded-lg px-2 py-1 border border-gray-200"
                           >
                             {editingPriceId === price.id ? (
-                              <Form method="post" className="flex items-center gap-1">
+                              <Form
+                                method="post"
+                                className="flex items-center gap-1"
+                                onSubmit={(event) => {
+                                  const formData = new FormData(event.currentTarget);
+                                  const rawPrice = formData.get("price") as string;
+                                  const nextPrice = Number.parseFloat(rawPrice);
+                                  const nextLabel = (formData.get("priceLabel") as string) || "";
+                                  if (Number.isNaN(nextPrice) || nextPrice <= 0) return;
+
+                                  setProductsState((prev) =>
+                                    prev.map((item) => ({
+                                      ...item,
+                                      prices: item.prices.map((p) =>
+                                        p.id === price.id
+                                          ? {
+                                              ...p,
+                                              price: nextPrice,
+                                              price_label: nextLabel.trim() || null,
+                                            }
+                                          : p,
+                                      ),
+                                    })),
+                                  );
+                                  setEditingPriceId(null);
+                                }}
+                              >
                                 <input type="hidden" name="intent" value="update-price" />
                                 <input type="hidden" name="id" value={price.id.toString()} />
                                 <input type="hidden" name="productId" value={product.id.toString()} />
@@ -356,14 +491,14 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                                   type="submit"
                                   disabled={isSubmitting}
                                   isLoading={isSubmitting}
-                                  className="!bg-green-500 hover:!bg-green-600 !text-white !px-2 !py-1 !rounded !text-xs"
+                                  className="!bg-green-500 hover:!bg-green-600 !text-white !px-3 !py-1 !rounded !text-xs"
                                 >
                                   ✓
                                 </Button>
                                 <button
                                   type="button"
                                   onClick={() => setEditingPriceId(null)}
-                                  className="!min-h-auto !max-h-auto !text-sm !px-4 !py-1.5 !bg-gray-200 !text-gray-700 !rounded hover:!bg-gray-300 !transition-colors"
+                                  className="!min-h-auto !max-h-auto !text-sm !px-3 !py-1.5 !bg-gray-200 !text-gray-700 !rounded hover:!bg-gray-300 !transition-colors"
                                 >
                                   ✕
                                 </button>
@@ -387,23 +522,34 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                   </svg>
                                 </button>
-                                <button
-                                  onClick={() => {
-                                    if (confirm("คุณต้องการลบราคานี้ใช่หรือไม่?")) {
-                                      const formData = new FormData();
-                                      formData.append("intent", "delete-price");
-                                      formData.append("id", price.id.toString());
-                                      fetch("/products", { method: "POST", body: formData })
-                                        .then(() => window.location.reload());
+                                <Form
+                                  method="post"
+                                  onSubmit={(event) => {
+                                    if (!confirm("คุณต้องการลบราคานี้ใช่หรือไม่?")) {
+                                      event.preventDefault();
+                                      return;
                                     }
+
+                                    setProductsState((prev) =>
+                                      prev.map((item) => ({
+                                        ...item,
+                                        prices: item.prices.filter((p) => p.id !== price.id),
+                                      })),
+                                    );
                                   }}
-                                  className="!min-h-auto !max-h-auto !p-2 !flex !items-center !justify-center !bg-red-50 !text-red-600 !rounded hover:!bg-red-100 !transition-colors"
-                                  title="ลบ"
                                 >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                  </svg>
-                                </button>
+                                  <input type="hidden" name="intent" value="delete-price" />
+                                  <input type="hidden" name="id" value={price.id.toString()} />
+                                  <button
+                                    type="submit"
+                                    className="!min-h-auto !max-h-auto !p-2 !flex !items-center !justify-center !bg-red-50 !text-red-600 !rounded hover:!bg-red-100 !transition-colors"
+                                    title="ลบ"
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>
+                                </Form>
                               </>
                             )}
                           </div>
