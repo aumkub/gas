@@ -5,6 +5,7 @@ import {
 	Outlet,
 	Scripts,
 	ScrollRestoration,
+	useNavigation,
 } from "react-router";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
@@ -46,7 +47,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-	return <Outlet />;
+	const navigation = useNavigation();
+	const isLoading = navigation.state !== "idle";
+
+	return (
+		<>
+			{isLoading && (
+				<div className="fixed left-0 top-0 z-50 h-1 w-full bg-blue-100 pointer-events-none" aria-hidden="true">
+					<div className="h-full w-1/3 animate-pulse bg-blue-600" />
+				</div>
+			)}
+			<Outlet />
+		</>
+	);
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

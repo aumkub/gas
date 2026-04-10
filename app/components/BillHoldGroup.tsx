@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/Card";
 import { Heading } from "~/components/Heading";
@@ -33,6 +34,11 @@ interface BillHoldGroupProps {
   onChange: (items: BillHoldItem[]) => void;
   availableCustomers: Array<{ id: number; name: string }>;
   onGetOrCreateCustomer: (name: string) => Promise<number>;
+  focusTarget?: {
+    type: 'billhold' | 'check';
+    id: string;
+  } | null;
+  onFocusComplete?: () => void;
 }
 
 export function BillHoldGroup({
@@ -40,8 +46,27 @@ export function BillHoldGroup({
   onChange,
   availableCustomers,
   onGetOrCreateCustomer,
+  focusTarget,
+  onFocusComplete,
 }: BillHoldGroupProps) {
   const groupTotal = calculateBillHoldTotal(items);
+  const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+
+  // Handle focus target
+  useEffect(() => {
+    if (!focusTarget || focusTarget.type !== 'billhold') return;
+
+    const { id } = focusTarget;
+
+    setTimeout(() => {
+      const input = inputRefs.current.get(id);
+      if (input) {
+        input.focus();
+        input.select();
+      }
+      onFocusComplete?.();
+    }, 150);
+  }, [focusTarget, onFocusComplete]);
 
   const addItem = () => {
     const newItem: BillHoldItem = {
@@ -118,6 +143,9 @@ export function BillHoldGroup({
                   }}
                   initialValue={item.customerName}
                   error={!item.customerName?.trim() ? "กรุณากรอกชื่อลูกค้า" : undefined}
+                  inputRef={(el) => {
+                    inputRefs.current.set(item.id, el);
+                  }}
                 />
               </div>
 
@@ -146,7 +174,13 @@ export function BillHoldGroup({
 
               {/* Actions */}
               <div className="col-span-2 flex items-end">
-                <Button onClick={() => removeItem(item.id)} kind="negative" size="compact" className="w-full">
+                <Button
+                  onClick={() => removeItem(item.id)}
+                  kind="negative"
+                  size="compact"
+                  className="w-full"
+                  tabIndex={-1}
+                >
                   ลบ
                 </Button>
               </div>

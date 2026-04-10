@@ -23,6 +23,7 @@ interface AutoCompleteProps<T> {
   renderItem?: (item: T) => React.ReactNode;
   focusTrigger?: number;
   preventEnter?: boolean;
+  inputRef?: React.RefObject<HTMLInputElement> | ((el: HTMLInputElement | null) => void);
 }
 
 export function AutoComplete<T>({
@@ -43,6 +44,7 @@ export function AutoComplete<T>({
   renderItem,
   focusTrigger,
   preventEnter = false,
+  inputRef: externalInputRef,
 }: AutoCompleteProps<T>) {
   const [inputValue, setInputValue] = useState(initialValue);
   const [filteredItems, setFilteredItems] = useState<T[]>([]);
@@ -50,9 +52,20 @@ export function AutoComplete<T>({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [isCreating, setIsCreating] = useState(false);
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const internalInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isFocusedRef = useRef(false);
+
+  // Handle external ref
+  const inputRef = internalInputRef;
+
+  useEffect(() => {
+    if (typeof externalInputRef === 'function') {
+      externalInputRef(inputRef.current);
+    } else if (externalInputRef && 'current' in externalInputRef) {
+      (externalInputRef as React.MutableRefObject<HTMLInputElement | null>).current = inputRef.current;
+    }
+  }, [externalInputRef, inputRef.current]);
 
   const normalizeValue = (value: string) => value.trim().toLowerCase();
 
@@ -206,6 +219,12 @@ export function AutoComplete<T>({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // Don't close if clicking on a dropdown item (let the onClick handler process it)
+      const target = event.target as HTMLElement;
+      if (target.closest('.dropdown-item')) {
+        return;
+      }
+
       if (
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)
@@ -268,6 +287,7 @@ export function AutoComplete<T>({
         <div
           className="absolute z-50 text-sm w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
           style={{ minWidth: inputRef.current?.offsetWidth || "100%" }}
+          onMouseDown={(e) => e.preventDefault()} // Prevent mousedown from closing dropdown
         >
           {filteredItems.map((item, index) => {
             const isHighlighted = index === highlightedIndex;
@@ -275,7 +295,7 @@ export function AutoComplete<T>({
               <div
                 key={index}
                 onClick={() => handleSelectItem(item)}
-                className={`px-4 py-3 cursor-pointer text-sm border-b border-gray-100 last:border-b-0 ${
+                className={`dropdown-item px-4 py-3 cursor-pointer text-sm border-b border-gray-100 last:border-b-0 ${
                   isHighlighted ? "bg-blue-50" : "hover:bg-gray-50"
                 }`}
                 style={{ minHeight: "48px", display: "flex", alignItems: "center" }}
@@ -292,6 +312,7 @@ export function AutoComplete<T>({
         <div
           className="absolute z-50 text-sm w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg"
           style={{ minWidth: inputRef.current?.offsetWidth || "100%" }}
+          onMouseDown={(e) => e.preventDefault()}
         >
           <div
             className="px-4 py-3 text-sm text-gray-500 text-center"

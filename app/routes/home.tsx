@@ -1,5 +1,5 @@
 import type { Route } from "./+types/home";
-import { redirect, useLoaderData } from "react-router";
+import { Link, redirect, useNavigate, Form } from "react-router";
 import { requireAuth } from "~/lib/session";
 import { getReportsByMonth } from "~/lib/db";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, parseISO, isToday, getMonth, getYear } from "date-fns";
@@ -10,11 +10,14 @@ import {
   faBuildingColumns,
   faChevronLeft,
   faChevronRight,
+  faEye,
   faHand,
+  faPenToSquare,
   faRightFromBracket,
   faChartLine,
   faFileLines,
   faUsers,
+  faDownload,
 } from "@fortawesome/free-solid-svg-icons";
 
 export function meta({}: Route.MetaArgs) {
@@ -53,6 +56,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 
 export default function Home({ loaderData }: Route.ComponentProps) {
   const { user, reports, currentMonth, currentYear } = loaderData;
+  const navigate = useNavigate();
   const monthStart = startOfMonth(new Date(currentYear, currentMonth));
   const monthEnd = endOfMonth(monthStart);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
@@ -66,12 +70,12 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
   const goToPrevMonth = () => {
     const date = new Date(currentYear, currentMonth - 1);
-    window.location.href = `/?month=${getMonth(date)}&year=${getYear(date)}`;
+    navigate(`/?month=${getMonth(date)}&year=${getYear(date)}`);
   };
 
   const goToNextMonth = () => {
     const date = new Date(currentYear, currentMonth + 1);
-    window.location.href = `/?month=${getMonth(date)}&year=${getYear(date)}`;
+    navigate(`/?month=${getMonth(date)}&year=${getYear(date)}`);
   };
 
   const formatDate = (date: Date) => {
@@ -91,11 +95,11 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   };
 
   const handleCreateReport = (date: Date) => {
-    window.location.href = `/report/create?date=${formatDate(date)}`;
+    navigate(`/report/create?date=${formatDate(date)}`);
   };
 
   const handleViewReport = (date: string) => {
-    window.location.href = `/report/view?date=${date}`;
+    navigate(`/report/view?date=${date}`);
   };
 
   // Get the first day of the week (0 = Sunday)
@@ -142,21 +146,21 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   ยินดีต้อนรับ, <span className="font-semibold text-blue-600">{user.username}</span>
                 </p>
               </div>
-              <a
-                href="/logout"
+              <Link
+                to="/logout"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all shadow-md hover:shadow-lg font-medium"
               >
                 <FontAwesomeIcon icon={faRightFromBracket} className="h-5 w-5" />
                 ออกจากระบบ
-              </a>
+              </Link>
             </div>
           </div>
         </div>
 
         {/* Quick Actions */}
         <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <a
-            href="/products"
+          <Link
+            to="/products"
             className="group bg-white rounded-xl p-6 border border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all duration-300 relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -169,9 +173,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 <p className="mt-1 text-sm text-gray-500">เพิ่ม แก้ไข หรือลบสินค้า</p>
               </div>
             </div>
-          </a>
-          <a
-            href="/banks"
+          </Link>
+          <Link
+            to="/banks"
             className="group bg-white rounded-xl p-6 border border-gray-200 hover:border-green-300 hover:shadow-xl transition-all duration-300 relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-50 to-green-100 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -184,9 +188,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 <p className="mt-1 text-sm text-gray-500">เพิ่ม แก้ไข หรือลบธนาคาร</p>
               </div>
             </div>
-          </a>
-          <a
-            href="/customers"
+          </Link>
+          <Link
+            to="/customers"
             className="group bg-white rounded-xl p-6 border border-gray-200 hover:border-orange-300 hover:shadow-xl transition-all duration-300 relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-50 to-orange-100 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -199,22 +203,22 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 <p className="mt-1 text-sm text-gray-500">เพิ่ม แก้ไข หรือลบลูกค้า</p>
               </div>
             </div>
-          </a>
-          <a
-            href="/analytics"
+          </Link>
+          <Link
+            to="/analytics"
             className="group bg-white rounded-xl p-6 border border-gray-200 hover:border-purple-300 hover:shadow-xl transition-all duration-300 relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-50 to-purple-100 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative z-10 flex items-start gap-4">
               <div className="w-14 h-14 min-w-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <FontAwesomeIcon icon={faChartLine} className="text-2xl text-white" />
+                <FontAwesomeIcon icon={faChartLine} className="h-6 w-6 text-white" />
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors">รายงานวิเคราะห์</h3>
                 <p className="mt-1 text-sm text-gray-500">ดูสถิติและวิเคราะห์การขาย</p>
               </div>
             </div>
-          </a>
+          </Link>
         </div>
    
 
@@ -297,21 +301,24 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                                 e.stopPropagation();
                                 handleViewReport(dateStr);
                               }}
-                              className="inline-flex items-center justify-center h-[30px] min-h-[30px] px-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-md hover:shadow-lg text-[14px] font-medium"
+                              className="inline-flex items-center justify-center cursor-pointer h-[30px] min-h-[30px] px-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-md hover:shadow-lg text-[14px] font-medium"
                               title="ดู"
                             >
-                              ดู
+                              <FontAwesomeIcon icon={faEye} className="align-middle text-[16px]" />
+                              <span className="sr-only">ดู</span>
                             </button>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleCreateReport(day);
                               }}
-                              className="inline-flex items-center justify-center h-[30px] min-h-[30px] px-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg text-[14px] font-medium"
+                              className="inline-flex items-center justify-center cursor-pointer h-[30px] min-h-[30px] px-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg text-[14px] font-medium"
                               title="แก้ไขรายงาน"
                             >
-                              แก้ไข
+                              <FontAwesomeIcon icon={faPenToSquare} className="align-middle text-[16px]" />
+                              <span className="sr-only">แก้ไข</span>
                             </button>
+                       
                           </>
                         ) : (
                           <div className="inline-flex items-center justify-center h-[30px] min-h-[30px] px-3 bg-gray-100 rounded-lg group-hover:bg-gradient-to-r group-hover:from-blue-100 group-hover:to-purple-100 transition-all text-[14px] font-medium text-gray-500 group-hover:text-blue-500">
@@ -342,6 +349,74 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               <span className="text-gray-600">ว่าง</span>
             </div>
           </div>
+        </div>
+
+        {/* CSV Export Section */}
+        <div className="mt-8 bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 min-w-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                <FontAwesomeIcon icon={faDownload} className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">ส่งออกข้อมูลรายงาน</h3>
+                <p className="text-sm text-gray-500">ดาวน์โหลดข้อมูลรายงานทั้งหมดของเดือนนี้เป็นไฟล์ CSV</p>
+              </div>
+            </div>
+            <button
+              onClick={async () => {
+                if (reports.length === 0) return;
+
+                try {
+                  console.log('Starting export for month:', currentMonth, 'year:', currentYear);
+                  const response = await fetch(`/export-csv?month=${currentMonth}&year=${currentYear}`, {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: {
+                      'Accept': 'text/csv',
+                    },
+                  });
+
+                  console.log('Response status:', response.status);
+                  console.log('Response ok:', response.ok);
+
+                  if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    throw new Error(`Failed to export data: ${response.status} ${errorText}`);
+                  }
+
+                  const csvContent = await response.text();
+                  console.log('CSV content length:', csvContent.length);
+
+                  const blob = new Blob([csvContent], { type: 'text/csv; charset=utf-8' });
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `รายงานการขาย_${monthNames[currentMonth]}_${currentYear}.csv`;
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  document.body.removeChild(a);
+
+                  console.log('Download completed successfully');
+                } catch (error) {
+                  console.error('Export error:', error);
+                  alert(`เกิดข้อผิดพลาดในการส่งออกข้อมูล: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                }
+              }}
+              disabled={reports.length === 0}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all shadow-md hover:shadow-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FontAwesomeIcon icon={faDownload} className="h-5 w-5" />
+              ดาวน์โหลด CSV
+            </button>
+          </div>
+          {reports.length === 0 && (
+            <p className="mt-4 text-sm text-amber-600 bg-amber-50 px-4 py-2 rounded-lg">
+              ไม่มีรายงานในเดือนนี้ที่จะส่งออก
+            </p>
+          )}
         </div>
       </div>
     </div>

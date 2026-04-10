@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/Card";
 import { Heading } from "~/components/Heading";
@@ -47,6 +48,11 @@ interface CheckGroupProps {
     owner_name: string;
   }>;
   onGetOrCreateCustomer: (name: string) => Promise<number>;
+  focusTarget?: {
+    type: 'billhold' | 'check';
+    id: string;
+  } | null;
+  onFocusComplete?: () => void;
 }
 
 export function CheckGroup({
@@ -54,8 +60,27 @@ export function CheckGroup({
   onChange,
   availableBanks,
   onGetOrCreateCustomer,
+  focusTarget,
+  onFocusComplete,
 }: CheckGroupProps) {
   const groupTotal = calculateCheckTotal(items);
+  const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+
+  // Handle focus target
+  useEffect(() => {
+    if (!focusTarget || focusTarget.type !== 'check') return;
+
+    const { id } = focusTarget;
+
+    setTimeout(() => {
+      const input = inputRefs.current.get(id);
+      if (input) {
+        input.focus();
+        input.select();
+      }
+      onFocusComplete?.();
+    }, 150);
+  }, [focusTarget, onFocusComplete]);
 
   const addItem = () => {
     const newItem: CheckItem = {
@@ -211,6 +236,9 @@ export function CheckGroup({
                   }}
                   initialValue={item.customerName}
                   error={!item.customerName?.trim() ? "กรุณากรอกชื่อลูกค้า" : undefined}
+                  inputRef={(el) => {
+                    inputRefs.current.set(item.id, el);
+                  }}
                 />
               </div>
 
@@ -326,7 +354,12 @@ export function CheckGroup({
 
             {/* Delete Button */}
             <div className="flex justify-end">
-              <Button onClick={() => removeItem(item.id)} kind="negative" size="compact">
+              <Button
+                onClick={() => removeItem(item.id)}
+                kind="negative"
+                size="compact"
+                tabIndex={-1}
+              >
                 ลบรายการ
               </Button>
             </div>

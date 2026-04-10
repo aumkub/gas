@@ -882,3 +882,79 @@ export async function getMonthlySummary(
     total_reports: reportsResult?.total_reports || 0,
   };
 }
+
+export interface DetailedReport {
+  report_date: string;
+  customer_name: string;
+  product_name: string | null;
+  item_type: 'sales' | 'bill_hold' | 'check';
+  price: number | null;
+  quantity: number | null;
+  total: number;
+  bank_name: string | null;
+  account_number: string | null;
+  check_date: string | null;
+}
+
+export async function getDetailedReportsByMonth(
+  db: D1Database,
+  year: number,
+  month: number
+): Promise<DetailedReport[]> {
+  const result: DetailedReport[] = [];
+
+  const reports = await getReportsByMonth(db, year, month);
+
+  for (const report of reports) {
+    const salesItems = await getSalesItemsByReport(db, report.id);
+    const billHoldItems = await getBillHoldItemsByReport(db, report.id);
+    const checkItems = await getCheckItemsByReport(db, report.id);
+
+    for (const item of salesItems) {
+      result.push({
+        report_date: report.report_date,
+        customer_name: item.customer_name || '',
+        product_name: item.product_name || '',
+        item_type: 'sales',
+        price: item.price,
+        quantity: item.quantity,
+        total: item.total,
+        bank_name: null,
+        account_number: null,
+        check_date: null,
+      });
+    }
+
+    for (const item of billHoldItems) {
+      result.push({
+        report_date: report.report_date,
+        customer_name: item.customer_name || '',
+        product_name: null,
+        item_type: 'bill_hold',
+        price: null,
+        quantity: null,
+        total: item.amount,
+        bank_name: null,
+        account_number: null,
+        check_date: null,
+      });
+    }
+
+    for (const item of checkItems) {
+      result.push({
+        report_date: report.report_date,
+        customer_name: item.customer_name || '',
+        product_name: null,
+        item_type: 'check',
+        price: null,
+        quantity: null,
+        total: item.amount,
+        bank_name: item.bank_name,
+        account_number: item.account_number,
+        check_date: item.check_date,
+      });
+    }
+  }
+
+  return result.sort((a, b) => a.report_date.localeCompare(b.report_date));
+}

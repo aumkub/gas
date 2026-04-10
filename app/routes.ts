@@ -4,6 +4,7 @@ export default [
   index("routes/home.tsx"),
   route("login", "routes/login.tsx"),
   route("logout", "routes/logout.tsx"),
+  route("export-csv", "routes/export-csv.ts"),
   route("products", "routes/products.tsx"),
   route("banks", "routes/banks.tsx"),
   route("customers", "routes/customers.tsx"),

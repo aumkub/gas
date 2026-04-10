@@ -69,6 +69,11 @@ interface SalesGroupProps {
   availableProducts: ProductWithPrices[];
   availableCustomers: Array<{ id: number; name: string }>;
   onGetOrCreateCustomer: (name: string) => Promise<number>;
+  focusTarget?: {
+    type: 'customer' | 'product';
+    customerId: string;
+  } | null;
+  onFocusComplete?: () => void;
 }
 
 export function SalesGroup({
@@ -77,8 +82,12 @@ export function SalesGroup({
   availableProducts,
   availableCustomers,
   onGetOrCreateCustomer,
+  focusTarget,
+  onFocusComplete,
 }: SalesGroupProps) {
   const [expandedCustomers, setExpandedCustomers] = useState<Set<string>>(new Set());
+  const customerInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+  const productInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
   // Update expanded customers when customers array changes
   useEffect(() => {
@@ -87,17 +96,61 @@ export function SalesGroup({
     }
   }, [customers]);
 
+  // Handle focus target
+  useEffect(() => {
+    if (!focusTarget) return;
+
+    const { type, customerId } = focusTarget;
+
+    // Longer delay to ensure DOM and refs are fully updated
+    setTimeout(() => {
+      if (type === 'customer') {
+        const input = customerInputRefs.current.get(customerId);
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      } else if (type === 'product') {
+        const input = productInputRefs.current.get(customerId);
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      }
+      onFocusComplete?.();
+    }, 150);
+  }, [focusTarget, onFocusComplete]);
+
   const groupTotal = calculateSalesGroupTotal(customers);
 
   const addCustomer = () => {
+    const newItem: SalesItem = {
+      id: `item-${Date.now()}`,
+      productId: null,
+      productName: "",
+      price: 0,
+      quantity: 1,
+      total: 0,
+    };
     const newCustomer: SalesCustomer = {
       id: `customer-${Date.now()}`,
       customerId: null,
       customerName: "",
-      items: [],
+      items: [newItem], // Automatically add one product line
     };
-    onChange([...customers, newCustomer]);
+    const updatedCustomers = [...customers, newCustomer];
+    onChange(updatedCustomers);
     setExpandedCustomers(new Set([...expandedCustomers, newCustomer.id]));
+
+    // Focus on the new customer input
+    setTimeout(() => {
+      const input = customerInputRefs.current.get(newCustomer.id);
+      if (input) {
+        console.log('Focusing new customer input after addCustomer:', newCustomer.id);
+        input.focus();
+        input.select();
+      }
+    }, 150);
   };
 
   const removeCustomer = (customerId: string) => {
@@ -246,17 +299,28 @@ export function SalesGroup({
                     }}
                     initialValue={customer.customerName}
                     error={!customer.customerName?.trim() ? "invalid" : undefined}
+                    inputRef={(el) => {
+                      customerInputRefs.current.set(customer.id, el);
+                    }}
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Button onClick={() => toggleExpanded(customer.id)} size="compact" kind="ghost">
+                  <Button
+                    onClick={() => toggleExpanded(customer.id)}
+                    size="compact"
+                    kind="ghost"
+                    tabIndex={-1}
+                  >
                     <FontAwesomeIcon icon={isExpanded ? faChevronDown : faChevronUp} />
                   </Button>
-                  {customers.length > 1 && (
-                    <Button onClick={() => removeCustomer(customer.id)} kind="negative" size="compact">
-                      ลบลูกค้า
-                    </Button>
-                  )}
+                  <Button
+                    onClick={() => removeCustomer(customer.id)}
+                    kind="negative"
+                    size="compact"
+                    tabIndex={-1}
+                  >
+                    ลบลูกค้า
+                  </Button>
                 </div>
               </div>
 
@@ -282,7 +346,7 @@ export function SalesGroup({
                   </div>
 
                   <div className="max-h-96 space-y-2 pr-1">
-                    {customer.items.map((item) => (
+                    {customer.items.map((item, index) => (
                       <ProductRow
                         key={item.id}
                         item={item}
@@ -295,6 +359,11 @@ export function SalesGroup({
                         }
                         onDuplicate={() => duplicateItem(customer.id, item.id)}
                         onRemove={() => removeItem(customer.id, item.id)}
+                        productInputRef={(el) => {
+                          if (el && index === customer.items.length - 1) {
+                            productInputRefs.current.set(customer.id, el);
+                          }
+                        }}
                       />
                     ))}
                   </div>
@@ -331,6 +400,7 @@ interface ProductRowProps {
   onProductSelect: (product: ProductWithPrices, priceIndex?: number) => void;
   onDuplicate: () => void;
   onRemove: () => void;
+  productInputRef?: (el: HTMLInputElement | null) => void;
 }
 
 function ProductRow({
@@ -340,10 +410,19 @@ function ProductRow({
   onProductSelect,
   onDuplicate,
   onRemove,
+  productInputRef,
 }: ProductRowProps) {
   const quantityInputRef = useRef<HTMLInputElement>(null);
+  const productInputRefInternal = useRef<HTMLInputElement>(null);
   const selectedProduct = availableProducts.find((p) => p.id === item.productId);
   const availablePrices = selectedProduct?.prices || [];
+
+  // Call the productInputRef callback when the input is available
+  useEffect(() => {
+    if (productInputRef && productInputRefInternal.current) {
+      productInputRef(productInputRefInternal.current);
+    }
+  }, [productInputRef]);
 
   return (
     <div className="grid grid-cols-12 items-end gap-2 rounded-lg py-0 p-2.5">
@@ -386,6 +465,7 @@ function ProductRow({
           allowCreate
           error={!item.productName?.trim() ? "กรุณากรอกชื่อสินค้า" : undefined}
           initialValue={item.productName}
+          inputRef={productInputRefInternal}
         />
       </div>
 
@@ -469,6 +549,7 @@ function ProductRow({
           className="h-8 w-8 p-0"
           aria-label="คัดลอกรายการ"
           title="คัดลอก"
+          tabIndex={-1}
         >
           <FontAwesomeIcon icon={faCopy} />
         </Button>
@@ -479,6 +560,7 @@ function ProductRow({
           className="h-8 w-8 p-0"
           aria-label="ลบรายการ"
           title="ลบ"
+          tabIndex={-1}
         >
           <FontAwesomeIcon icon={faTrash} />
         </Button>

@@ -350,6 +350,12 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
+  // Focus targets for keyboard shortcuts
+  const [focusTarget, setFocusTarget] = useState<{
+    type: 'customer' | 'product' | 'billhold' | 'check';
+    id: string;
+  } | null>(null);
+
   // Initialize data from loader
   useEffect(() => {
     // Initialize sales data
@@ -492,6 +498,118 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
     return data.id;
   };
 
+  const addCustomerWithProduct = () => {
+    const newItem: SalesItem = {
+      id: `item-${Date.now()}`,
+      productId: null,
+      productName: "",
+      price: 0,
+      quantity: 1,
+      total: 0,
+    };
+    const newCustomer: SalesCustomer = {
+      id: `customer-${Date.now()}`,
+      customerId: null,
+      customerName: "",
+      items: [newItem], // Add one product line by default
+    };
+    const updatedCustomers = [...salesData, newCustomer];
+    setSalesData(updatedCustomers);
+    setFocusTarget({ type: 'customer', customerId: newCustomer.id });
+  };
+
+  const addProductToLastCustomer = () => {
+    if (salesData.length === 0) {
+      addCustomerWithProduct();
+      return;
+    }
+
+    const lastCustomer = salesData[salesData.length - 1];
+    const newItem: SalesItem = {
+      id: `item-${Date.now()}`,
+      productId: null,
+      productName: "",
+      price: 0,
+      quantity: 1,
+      total: 0,
+    };
+
+    const updatedCustomers = salesData.map((c) =>
+      c.id === lastCustomer.id
+        ? { ...c, items: [...c.items, newItem] }
+        : c
+    );
+
+    setSalesData(updatedCustomers);
+    setFocusTarget({ type: 'product', customerId: lastCustomer.id });
+  };
+
+  const deleteLatestProduct = () => {
+    if (salesData.length === 0) return;
+
+    const lastCustomer = salesData[salesData.length - 1];
+
+    // Don't delete if it's the only product line in the only customer
+    if (salesData.length === 1 && lastCustomer.items.length <= 1) {
+      return;
+    }
+
+    // If last customer has products, delete the last one
+    if (lastCustomer.items.length > 0) {
+      const updatedCustomer = {
+        ...lastCustomer,
+        items: lastCustomer.items.slice(0, -1)
+      };
+
+      // If customer has no products left and it's not the only customer, remove the customer
+      if (updatedCustomer.items.length === 0 && salesData.length > 1) {
+        setSalesData(salesData.filter(c => c.id !== lastCustomer.id));
+      } else {
+        setSalesData(salesData.map(c => c.id === lastCustomer.id ? updatedCustomer : c));
+      }
+
+      // Focus on the new last product if there is one
+      if (updatedCustomer.items.length > 0) {
+        setFocusTarget({ type: 'product', customerId: lastCustomer.id });
+      }
+    }
+  };
+
+  const addBillHoldItem = () => {
+    const newItem: BillHoldItem = {
+      id: `billhold-${Date.now()}`,
+      customerId: null,
+      customerName: "",
+      amount: 0,
+    };
+    setBillHoldData([...billHoldData, newItem]);
+    setFocusTarget({ type: 'billhold', id: newItem.id });
+  };
+
+  const deleteLatestBillHoldItem = () => {
+    if (billHoldData.length === 0) return;
+    setBillHoldData(billHoldData.slice(0, -1));
+  };
+
+  const addCheckItem = () => {
+    const newItem: CheckItem = {
+      id: `check-${Date.now()}`,
+      bankName: "",
+      accountNumber: "",
+      customerId: null,
+      customerName: "",
+      checkDate: "",
+      amount: 0,
+    };
+    setCheckData([...checkData, newItem]);
+    setFocusTarget({ type: 'check', id: newItem.id });
+  };
+
+  const deleteLatestCheckItem = () => {
+    if (checkData.length === 0) return;
+    setCheckData(checkData.slice(0, -1));
+  };
+
   // Calculate totals
   const salesTotal = salesData.reduce((sum, customer) => {
     return (
@@ -551,11 +669,76 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
       event.preventDefault();
     };
 
+    const handleKeyboardShortcuts = (event: KeyboardEvent) => {
+      // Check if user is typing in an input field (exclude these shortcuts)
+      const target = event.target as HTMLElement;
+      const isInputFocused = target.tagName === 'INPUT' ||
+                             target.tagName === 'TEXTAREA' ||
+                             target.contentEditable === 'true';
+
+      // Only handle shortcuts when not in input, or allow specific keys
+      if (isInputFocused && !['+', '=', '-', '_', 'b', 'c'].includes(event.key.toLowerCase())) {
+        return;
+      }
+
+      // Ctrl + + (or Ctrl + =) - Add product line (Sales)
+      if ((event.key === '+' || event.key === '=') && (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey) {
+        event.preventDefault();
+        addProductToLastCustomer();
+        return;
+      }
+
+      // Ctrl + Shift + + (or Ctrl + Shift + =) - Add customer with product (Sales)
+      if ((event.key === '+' || event.key === '=') && (event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey) {
+        event.preventDefault();
+        addCustomerWithProduct();
+        return;
+      }
+
+      // Ctrl + - (or Ctrl + _) - Delete latest product line (Sales)
+      if ((event.key === '-' || event.key === '_') && (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey) {
+        event.preventDefault();
+        deleteLatestProduct();
+        return;
+      }
+
+      // Alt + + (or Alt + =) - Add bill hold item
+      if ((event.key === '+' || event.key === '=') && event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+        event.preventDefault();
+        addBillHoldItem();
+        return;
+      }
+
+      // Alt + - (or Alt + _) - Delete latest bill hold item
+      if ((event.key === '-' || event.key === '_') && event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+        event.preventDefault();
+        deleteLatestBillHoldItem();
+        return;
+      }
+
+      // Alt + Shift + + (or Alt + Shift + =) - Add check item
+      if ((event.key === '+' || event.key === '=') && event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        addCheckItem();
+        return;
+      }
+
+      // Alt + Shift + - (or Alt + Shift + _) - Delete latest check item
+      if ((event.key === '-' || event.key === '_') && event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        deleteLatestCheckItem();
+        return;
+      }
+    };
+
     window.addEventListener("keydown", handleEnterToSave);
+    window.addEventListener("keydown", handleKeyboardShortcuts);
+
     return () => {
       window.removeEventListener("keydown", handleEnterToSave);
+      window.removeEventListener("keydown", handleKeyboardShortcuts);
     };
-  }, [isSaving, isSubmitting, saveReport, shareUrl]);
+  }, [isSaving, isSubmitting, saveReport, shareUrl, salesData, billHoldData, checkData]);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-purple-50 via-white to-blue-50 px-3 py-4 md:px-4 md:py-5">
@@ -641,6 +824,8 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
               availableProducts={products}
               availableCustomers={availableCustomers}
               onGetOrCreateCustomer={handleGetOrCreateCustomer}
+              focusTarget={focusTarget}
+              onFocusComplete={() => setFocusTarget(null)}
             />
           </div>
 
@@ -650,6 +835,8 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
               onChange={setBillHoldData}
               availableCustomers={availableCustomers}
               onGetOrCreateCustomer={handleGetOrCreateCustomer}
+              focusTarget={focusTarget}
+              onFocusComplete={() => setFocusTarget(null)}
             />
 
             <CheckGroup
@@ -657,7 +844,87 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
               onChange={setCheckData}
               availableBanks={banks}
               onGetOrCreateCustomer={handleGetOrCreateCustomer}
+              focusTarget={focusTarget}
+              onFocusComplete={() => setFocusTarget(null)}
             />
+          </div>
+        </div>
+
+        {/* Keyboard Shortcuts Guide */}
+        <div className="mt-6 rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-purple-50 p-5 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-md">
+                <span className="text-2xl">⌨️</span>
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 class="text-xl font-bold text-gray-800 mb-3">🎯 แป้นพิมพ์ลัด ช่วยให้ทำงานเร็วยขึ้น!</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                {/* Sales Shortcuts */}
+                <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
+                  <h4 className="font-bold text-purple-700 mb-2 flex items-center gap-2">
+                    <span>📦</span> ส่วนขายสินค้า
+                  </h4>
+                  <ul className="space-y-1.5 text-gray-700">
+                    <li className="flex items-start gap-2">
+                      <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-mono text-xs font-bold whitespace-nowrap">Ctrl + +</span>
+                      <span>เพิ่มรายการสินค้า</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-mono text-xs font-bold whitespace-nowrap">Ctrl + Shift + +</span>
+                      <span>เพิ่มลูกค้าใหม่</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="inline-block px-2 py-0.5 bg-red-100 text-red-700 rounded font-mono text-xs font-bold whitespace-nowrap">Ctrl + -</span>
+                      <span>ลบรายการล่าสุด</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Bill Hold Shortcuts */}
+                <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
+                  <h4 className="font-bold text-orange-700 mb-2 flex items-center gap-2">
+                    <span>📋</span> ส่วนบิลฝากเก็บ
+                  </h4>
+                  <ul className="space-y-1.5 text-gray-700">
+                    <li className="flex items-start gap-2">
+                      <span className="inline-block px-2 py-0.5 bg-orange-100 text-orange-700 rounded font-mono text-xs font-bold whitespace-nowrap">Alt + +</span>
+                      <span>เพิ่มรายการบิลฝากเก็บ</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="inline-block px-2 py-0.5 bg-red-100 text-red-700 rounded font-mono text-xs font-bold whitespace-nowrap">Alt + -</span>
+                      <span>ลบรายการล่าสุด</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Check Shortcuts */}
+                <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
+                  <h4 className="font-bold text-green-700 mb-2 flex items-center gap-2">
+                    <span>✅</span> ส่วนเช็ค
+                  </h4>
+                  <ul className="space-y-1.5 text-gray-700">
+                    <li className="flex items-start gap-2">
+                      <span className="inline-block px-2 py-0.5 bg-green-100 text-green-700 rounded font-mono text-xs font-bold whitespace-nowrap">Alt + Shift + +</span>
+                      <span>เพิ่มรายการเช็ค</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="inline-block px-2 py-0.5 bg-red-100 text-red-700 rounded font-mono text-xs font-bold whitespace-nowrap">Alt + Shift + -</span>
+                      <span>ลบรายการล่าสุด</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-gray-700 flex items-center gap-2">
+                  <span className="text-lg">💡</span>
+                  <strong>เคล็ดลับ:</strong> กด <span className="font-bold text-blue-600">Enter</span> เพื่อบันทึกข้อมูลทันที • เคอร์เซอร์จะไปที่ช่องกรอกข้อมูลให้คุณโดยอัตโนมัติ
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
