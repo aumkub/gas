@@ -223,27 +223,30 @@ export default function Home({ loaderData }: Route.ComponentProps) {
    
 
         {/* Month Navigator */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-          <div className="flex items-center justify-between">
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-8 border border-gray-100">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <button
               onClick={goToPrevMonth}
-              className="inline-flex items-center cursor-pointer gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg font-medium"
+              className="w-full sm:w-auto inline-flex items-center justify-center cursor-pointer gap-2 px-4 py-2 md:px-6 md:py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg font-medium text-base md:text-lg"
             >
               <FontAwesomeIcon icon={faChevronLeft} className="h-5 w-5" />
-              เดือนก่อนหน้า
+              <span className="hidden xs:inline">เดือนก่อนหน้า</span>
+              <span className="xs:hidden">ก่อนหน้า</span>
             </button>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-center flex-1">
               {getMonthYearName()}
             </h2>
             <button
               onClick={goToNextMonth}
-              className="inline-flex items-center cursor-pointer gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg font-medium"
+              className="w-full sm:w-auto inline-flex items-center justify-center cursor-pointer gap-2 px-4 py-2 md:px-6 md:py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg font-medium text-base md:text-lg"
             >
-              เดือนถัดไป
+              <span className="hidden xs:inline">เดือนถัดไป</span>
+              <span className="xs:hidden">ถัดไป</span>
               <FontAwesomeIcon icon={faChevronRight} className="h-5 w-5" />
             </button>
           </div>
         </div>
+   
 
         {/* Calendar */}
         <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">

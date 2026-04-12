@@ -131,16 +131,16 @@ export function ReportSummary({
                         <table className="w-full text-sm">
                           <thead>
                             <tr className="bg-gray-50">
-                              <th className="px-2 py-2 text-left text-sm font-semibold">
+                              <th className="px-2 py-2 text-left text-base font-semibold">
                                 ชื่อสินค้า
                               </th>
-                              <th className="px-2 py-2 text-right text-sm font-semibold">
+                              <th className="px-2 py-2 text-right text-base font-semibold">
                                 ราคา
                               </th>
-                              <th className="px-2 py-2 text-right text-sm font-semibold">
+                              <th className="px-2 py-2 text-right text-base font-semibold">
                                 จำนวน
                               </th>
-                              <th className="px-2 py-2 text-right text-sm font-semibold">
+                              <th className="px-2 py-2 text-right text-base font-semibold">
                                 รวม
                               </th>
                             </tr>
@@ -151,16 +151,16 @@ export function ReportSummary({
                                 key={item.id}
                                 className="border-t border-gray-200"
                               >
-                                <td className="px-2 py-2 text-sm font-medium">
+                                <td className="px-2 py-2 text-base font-medium">
                                   {item.product_name || "-"}
                                 </td>
-                                <td className="px-2 py-2 text-right text-sm font-medium">
+                                <td className="px-2 py-2 text-right text-base font-medium">
                                   {formatCurrency(item.price)}
                                 </td>
-                                <td className="px-2 py-2 text-right text-sm font-medium">
+                                <td className="px-2 py-2 text-right text-base font-medium">
                                   {item.quantity}
                                 </td>
-                                <td className="px-2 py-2 text-right text-sm font-medium font-medium">
+                                <td className="px-2 py-2 text-right text-base font-medium font-medium">
                                   {formatCurrency(item.total)}
                                 </td>
                               </tr>
@@ -199,10 +199,10 @@ export function ReportSummary({
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50">
-                      <th className="px-2 py-2 text-left text-xs font-semibold">
+                      <th className="px-2 py-2 text-left text-base font-semibold">
                         ชื่อลูกค้า
                       </th>
-                      <th className="px-2 py-2 text-right text-xs font-semibold">
+                      <th className="px-2 py-2 text-right text-base font-semibold">
                         จำนวนเงิน
                       </th>
                     </tr>
@@ -237,19 +237,19 @@ export function ReportSummary({
             </Heading>
 
             {checkItems.length === 0 ? (
-              <div className="text-center text-gray-500 py-4 text-sm">ไม่มีรายการเช็ค</div>
+              <div className="text-center text-gray-500 py-4 text-base">ไม่มีรายการเช็ค</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50">
-                      <th className="px-2 py-2 text-left text-xs font-semibold">
+                      <th className="px-2 py-2 text-left text-base font-semibold">
                         ธนาคาร
                       </th>
-                      <th className="px-2 py-2 text-left text-xs font-semibold">
+                      <th className="px-2 py-2 text-left text-base font-semibold">
                         เลขบัญชี
                       </th>
-                      <th className="px-2 py-2 text-right text-xs font-semibold">
+                      <th className="px-2 py-2 text-right text-base font-semibold">
                         จำนวนเงิน
                       </th>
                     </tr>
@@ -259,7 +259,7 @@ export function ReportSummary({
                       <tr key={item.id} className="border-t border-gray-200">
                         <td className="px-2 py-2 text-sm font-medium">{item.bank_name}</td>
                         <td className="px-2 py-2 text-sm font-medium">{item.account_number}</td>
-                        <td className="px-2 py-2 text-right text-xs font-medium">
+                        <td className="px-2 py-2 text-right text-base font-medium">
                           {formatCurrency(item.amount)}
                         </td>
                       </tr>
