@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS sales_items (
   price DECIMAL(10, 2) NOT NULL,
   quantity INTEGER NOT NULL DEFAULT 1,
   total DECIMAL(10, 2) NOT NULL,
+  is_cash INTEGER DEFAULT 0,
   FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE,
   FOREIGN KEY (customer_id) REFERENCES customers(id),
   FOREIGN KEY (product_id) REFERENCES products(id)

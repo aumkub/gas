@@ -33,6 +33,7 @@ export interface SalesCustomer {
   customerId: number | null;
   customerName: string;
   items: SalesItem[];
+  isCash: boolean;
 }
 
 // Validation functions
@@ -137,6 +138,7 @@ export function SalesGroup({
       customerId: null,
       customerName: "",
       items: [newItem], // Automatically add one product line
+      isCash: false,
     };
     const updatedCustomers = [...customers, newCustomer];
     onChange(updatedCustomers);
@@ -304,7 +306,27 @@ export function SalesGroup({
                     }}
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2 items-end">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id={`cash-${customer.id}`}
+                      checked={customer.isCash || false}
+                      onChange={(e) => {
+                        updateCustomer(customer.id, {
+                          isCash: e.target.checked,
+                        });
+                      }}
+                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor={`cash-${customer.id}`}
+                      className="text-sm font-medium text-gray-700 cursor-pointer"
+                    >
+                      สด
+                    </label>
+                  </div>
+                  <div className="flex gap-2">
                   <Button
                     onClick={() => toggleExpanded(customer.id)}
                     size="compact"
@@ -321,6 +343,7 @@ export function SalesGroup({
                   >
                     ลบลูกค้า
                   </Button>
+                  </div>
                 </div>
               </div>
 

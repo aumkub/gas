@@ -204,7 +204,8 @@ export async function action({ context, request }: Route.ActionArgs) {
                 productId,
                 item.price,
                 item.quantity || 1,
-                item.total
+                item.total,
+                customer.isCash ? 1 : 0
               );
               salesCount++;
             } else {
@@ -369,6 +370,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
           customerId: item.customer_id,
           customerName: item.customer_name || "",
           items: [],
+          isCash: item.is_cash === 1,
         });
       }
 
@@ -512,6 +514,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
       customerId: null,
       customerName: "",
       items: [newItem], // Add one product line by default
+      isCash: false,
     };
     const updatedCustomers = [...salesData, newCustomer];
     setSalesData(updatedCustomers);

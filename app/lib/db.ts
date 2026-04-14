@@ -61,6 +61,7 @@ export interface SalesItem {
   price: number;
   quantity: number;
   total: number;
+  is_cash?: number;
   customer_name?: string;
   product_name?: string;
 }
@@ -548,13 +549,14 @@ export async function createSalesItem(
   productId: number,
   price: number,
   quantity: number,
-  total: number
+  total: number,
+  isCash: number = 0
 ): Promise<void> {
   await db
     .prepare(
-      "INSERT INTO sales_items (report_id, customer_id, product_id, price, quantity, total) VALUES (?, ?, ?, ?, ?, ?)"
+      "INSERT INTO sales_items (report_id, customer_id, product_id, price, quantity, total, is_cash) VALUES (?, ?, ?, ?, ?, ?, ?)"
     )
-    .bind(reportId, customerId, productId, price, quantity, total)
+    .bind(reportId, customerId, productId, price, quantity, total, isCash)
     .run();
 }
 
