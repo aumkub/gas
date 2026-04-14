@@ -110,8 +110,21 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Check for Ctrl+Shift+N or Cmd+Shift+N (Mac)
-      // Use event.code for keyboard layout independence (works with Thai keyboard)
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.code === 'KeyN') {
+      // Support both English and Thai keyboard layouts
+      const isCtrlOrCmd = event.ctrlKey || event.metaKey;
+      const isShift = event.shiftKey;
+      const isNKey = event.code === 'KeyN' || event.key === 'N' || event.key === 'น' || event.key === 'ณ';
+
+      console.log('Key pressed:', {
+        key: event.key,
+        code: event.code,
+        ctrlKey: event.ctrlKey,
+        metaKey: event.metaKey,
+        shiftKey: event.shiftKey,
+        isNKey: isNKey
+      });
+
+      if (isCtrlOrCmd && isShift && isNKey) {
         event.preventDefault();
         console.log('Ctrl+Shift+N pressed - opening add customer form');
         setShowAddForm(true);
