@@ -317,7 +317,7 @@ export function SalesGroup({
                           isCash: e.target.checked,
                         });
                       }}
-                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                      className="h-5 w-5 text-green-500 focus:ring-green-400 focus:ring-offset-0 border-gray-400 rounded cursor-pointer"
                     />
                     <label
                       htmlFor={`cash-${customer.id}`}
