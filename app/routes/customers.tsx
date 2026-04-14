@@ -149,7 +149,7 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
               <div className="flex gap-3">
                 <a
                   href="/"
-                  className="inline-flex items-center gap-2 justify-center h-[44px] min-h-[44px] px-6 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+                  className="inline-flex items-center gap-2 justify-center h-[48px] min-h-[48px] px-6 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
                 >
                   <FontAwesomeIcon icon={faArrowLeft} className="h-5 w-5" />
                   กลับหน้าหลัก
@@ -201,6 +201,7 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
                   required
                   placeholder="ระบุชื่อลูกค้า"
                   className="w-full text-lg px-4 py-4.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  autoFocus
                 />
               </div>
               <div className="flex gap-3">
