@@ -275,7 +275,7 @@ export async function getProductPrices(
   productId: number
 ): Promise<ProductPrice[]> {
   const result = await db
-    .prepare("SELECT * FROM product_prices WHERE product_id = ?")
+    .prepare("SELECT * FROM product_prices WHERE product_id = ? ORDER BY price ASC")
     .bind(productId)
     .all<ProductPrice>();
   return result.results;

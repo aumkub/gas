@@ -403,6 +403,7 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                             required
                             placeholder="ราคา"
                             className="flex-1 min-w-[120px] px-3 py-2 border border-gray-300 rounded-lg"
+                            autoFocus
                           />
                           <Input
                             name="priceLabel"
