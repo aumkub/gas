@@ -17,6 +17,7 @@ import {
   createCheckItem,
   getAllCustomers,
   getProductsPrices,
+  getProductPrices,
   getAllBanks,
   getOrCreateCustomer,
   getProductByName,
@@ -176,12 +177,27 @@ export async function action({ context, request }: Route.ActionArgs) {
               const existingProduct = await getProductByName(db, productName);
               if (existingProduct) {
                 productId = existingProduct.id;
+                // Check if this price already exists for the existing product
+                const existingPrices = await getProductPrices(db, existingProduct.id);
+                const priceExists = existingPrices.some(p => p.price === item.price);
+                // If price doesn't exist, add it to the product
+                if (!priceExists && item.price > 0) {
+                  await addProductPrice(db, existingProduct.id, item.price, null);
+                }
               } else {
                 const createdProduct = await createProduct(db, productName);
                 productId = createdProduct.id;
                 if (item.price > 0) {
                   await addProductPrice(db, createdProduct.id, item.price, null);
                 }
+              }
+            } else if (productId && item.price > 0) {
+              // For existing products with productId, check if price exists
+              const existingPrices = await getProductPrices(db, productId);
+              const priceExists = existingPrices.some(p => p.price === item.price);
+              // If price doesn't exist, add it to the product
+              if (!priceExists) {
+                await addProductPrice(db, productId, item.price, null);
               }
             }
 
