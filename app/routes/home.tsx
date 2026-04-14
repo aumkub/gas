@@ -426,15 +426,3 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   );
 }
 
-// Auto-scroll to current day
-if (typeof window !== "undefined") {
-  setTimeout(() => {
-    const today = new Date();
-    const todayStr = today.toISOString().split("T")[0];
-    const todayElement = document.getElementById(`day-${todayStr}`);
-    if (todayElement) {
-      todayElement.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, 100);
-}
-
