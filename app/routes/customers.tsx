@@ -106,13 +106,13 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
     setCustomerList(customers);
   }, [customers]);
 
-  // Keyboard shortcut for adding new customer (Ctrl+N)
+  // Keyboard shortcut for adding new customer (Ctrl+Shift+N)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Check for Ctrl+N or Cmd+N (Mac)
-      if ((event.ctrlKey || event.metaKey) && (event.key === 'n' || event.key === 'N')) {
+      // Check for Ctrl+Shift+N or Cmd+Shift+N (Mac)
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && (event.key === 'N' || event.code === 'KeyN')) {
         event.preventDefault();
-        console.log('Ctrl+N pressed - opening add customer form');
+        console.log('Ctrl+Shift+N pressed - opening add customer form');
         setShowAddForm(true);
       }
     };
