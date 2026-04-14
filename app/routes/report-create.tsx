@@ -1090,7 +1090,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
         {/* Messages */}
         {toast && (
           <div
-            className={`fixed bottom-4 right-4 rounded-lg px-4 py-2.5 text-sm text-white shadow-lg z-50 ${
+            className={`fixed bottom-4 left-4 rounded-lg px-4 py-2.5 text-sm text-white shadow-lg z-50 ${
               toast.type === "success" ? "bg-[#16A34A]" : "bg-[#DC2626]"
             }`}
           >
