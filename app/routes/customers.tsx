@@ -109,8 +109,10 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
   // Keyboard shortcut for adding new customer (Ctrl+N)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.ctrlKey && event.key === 'n') {
+      // Check for Ctrl+N or Cmd+N (Mac)
+      if ((event.ctrlKey || event.metaKey) && (event.key === 'n' || event.key === 'N')) {
         event.preventDefault();
+        console.log('Ctrl+N pressed - opening add customer form');
         setShowAddForm(true);
       }
     };
