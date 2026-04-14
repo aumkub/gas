@@ -123,6 +123,9 @@ export function SalesGroup({
   }, [focusTarget, onFocusComplete]);
 
   const groupTotal = calculateSalesGroupTotal(customers);
+  const cashTotal = customers
+    .filter(customer => customer.isCash)
+    .reduce((sum, customer) => sum + calculateCustomerTotal(customer.items), 0);
 
   const addCustomer = () => {
     const newItem: SalesItem = {
@@ -408,8 +411,17 @@ export function SalesGroup({
 
       {/* Group Total */}
       <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-2">
-        <div className="text-right text-base font-semibold text-green-800">
-          ยอดรวมขาย: {formatCurrency(groupTotal)}
+        <div className="space-y-1">
+          <div className="flex justify-between items-center text-base">
+            <span className="font-semibold text-green-800">ยอดรวมขาย:</span>
+            <span className="font-bold text-green-800">{formatCurrency(groupTotal)}</span>
+          </div>
+          {cashTotal > 0 && (
+            <div className="flex justify-between items-center text-sm border-t border-green-300 pt-1">
+              <span className="font-semibold text-red-700">ชำระเงินสด:</span>
+              <span className="font-bold text-red-700">{formatCurrency(cashTotal)}</span>
+            </div>
+          )}
         </div>
       </div>
     </Card>

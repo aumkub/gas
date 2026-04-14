@@ -34,6 +34,10 @@ export function ReportSummary({
   // Calculate totals
   const salesTotal = salesItems.reduce((sum, item) => sum + item.total, 0);
 
+  const cashSalesTotal = salesItems
+    .filter(item => item.is_cash === 1)
+    .reduce((sum, item) => sum + item.total, 0);
+
   const billHoldTotal = billHoldItems.reduce((sum, item) => sum + item.amount, 0);
 
   const checkTotal = checkItems.reduce((sum, item) => sum + item.amount, 0);
@@ -179,8 +183,15 @@ export function ReportSummary({
             )}
 
             <div className="mt-3 bg-green-50 border border-green-500 rounded-lg px-3 py-2">
-              <div className="text-base font-bold text-right">
-                ยอดรวมขาย: {formatCurrency(salesTotal)}
+              <div className="space-y-1">
+                <div className="text-base font-bold text-right text-green-800">
+                  ยอดรวมขาย: {formatCurrency(salesTotal)}
+                </div>
+                {cashSalesTotal > 0 && (
+                  <div className="text-sm font-semibold text-right text-red-700 border-t border-green-400 pt-1">
+                    ชำระเงินสด: {formatCurrency(cashSalesTotal)}
+                  </div>
+                )}
               </div>
             </div>
           </Card>
