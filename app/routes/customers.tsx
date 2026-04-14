@@ -99,6 +99,8 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
   const [editingCustomerId, setEditingCustomerId] = useState<number | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10); // Show 10 customers per page
   const makeTempId = () => -Date.now();
   const nowIso = () => new Date().toISOString();
 
@@ -172,6 +174,17 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
   const filteredCustomers = customerList.filter((customer) =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentCustomers = filteredCustomers.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 px-4 py-8">
@@ -315,8 +328,9 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
                 <thead className="bg-gradient-to-r from-purple-50 to-blue-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">
@@ -334,7 +348,7 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filteredCustomers.map((customer) => (
+                  {currentCustomers.map((customer) => (
                     <tr
                       key={customer.id}
                       className="hover:bg-gray-50 transition-colors"
@@ -450,6 +464,74 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    แสดง {indexOfFirstItem + 1} ถึง {Math.min(indexOfLastItem, filteredCustomers.length)} จากทั้งหมด {filteredCustomers.length} รายการ
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {/* Previous Button */}
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
+                    >
+                      ก่อนหน้า
+                    </button>
+
+                    {/* Page Numbers */}
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                        // Show first page, last page, current page, and adjacent pages
+                        const showPage =
+                          page === 1 ||
+                          page === totalPages ||
+                          (page >= currentPage - 1 && page <= currentPage + 1);
+
+                        if (!showPage) {
+                          // Show ellipsis for hidden pages
+                          if (page === currentPage - 2 || page === currentPage + 2) {
+                            return (
+                              <span key={page} className="px-2 text-gray-400">
+                                ...
+                              </span>
+                            );
+                          }
+                          return null;
+                        }
+
+                        return (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`min-w-[40px] px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                              currentPage === page
+                                ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white border-purple-500'
+                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Next Button */}
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
+                    >
+                      ถัดไป
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
           )}
         </div>
 
