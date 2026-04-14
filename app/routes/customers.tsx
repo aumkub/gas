@@ -113,26 +113,39 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
       // Support both English and Thai keyboard layouts
       const isCtrlOrCmd = event.ctrlKey || event.metaKey;
       const isShift = event.shiftKey;
-      const isNKey = event.code === 'KeyN' || event.key === 'N' || event.key === 'น' || event.key === 'ณ';
+
+      // Multiple detection methods for Thai keyboard support
+      const isNKey =
+        event.code === 'KeyN' || // Physical key location
+        event.key === 'N' || // English uppercase
+        event.key === 'น' || // Thai character (N key in Thai mode)
+        event.key === 'ณ' || // Thai character (alternative N key)
+        event.keyCode === 78 || // Legacy key code for N
+        event.which === 78; // Legacy which property
 
       console.log('Key pressed:', {
         key: event.key,
         code: event.code,
+        keyCode: event.keyCode,
+        which: event.which,
         ctrlKey: event.ctrlKey,
         metaKey: event.metaKey,
         shiftKey: event.shiftKey,
+        isCtrlOrCmd: isCtrlOrCmd,
+        isShift: isShift,
         isNKey: isNKey
       });
 
       if (isCtrlOrCmd && isShift && isNKey) {
         event.preventDefault();
-        console.log('Ctrl+Shift+N pressed - opening add customer form');
+        event.stopPropagation();
+        console.log('✓ Ctrl+Shift+N detected - opening add customer form');
         setShowAddForm(true);
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown, true); // Use capture phase
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, []);
 
   useEffect(() => {
