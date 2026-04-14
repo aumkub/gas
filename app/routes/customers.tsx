@@ -3,6 +3,7 @@ import { useNavigation, Form } from "react-router";
 import { requireAuth } from "~/lib/session";
 import {
   getAllCustomers,
+  getCustomerByName,
   createCustomer,
   updateCustomer,
   deleteCustomer,
@@ -50,6 +51,11 @@ export async function action({ context, request }: Route.ActionArgs) {
         const name = formData.get("name") as string;
         if (!name || !name.trim()) {
           return { error: "กรุณาระบุชื่อลูกค้า" };
+        }
+        // Check if customer name already exists
+        const existingCustomer = await getCustomerByName(db, name.trim());
+        if (existingCustomer) {
+          return { error: "ชื่อลูกค้านี้มีอยู่แล้ว กรุณาระบุชื่ออื่น" };
         }
         await createCustomer(db, name.trim());
         return { success: "เพิ่มลูกค้าเรียบร้อย", intent: "create" };
@@ -176,6 +182,17 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
                 const formData = new FormData(event.currentTarget);
                 const name = (formData.get("name") as string)?.trim();
                 if (!name) return;
+
+                // Check if customer name already exists
+                const nameExists = customerList.some(
+                  (customer) => customer.name.toLowerCase() === name.toLowerCase()
+                );
+
+                if (nameExists) {
+                  alert("ชื่อลูกค้านี้มีอยู่แล้ว กรุณาระบุชื่ออื่น");
+                  event.preventDefault();
+                  return;
+                }
 
                 setCustomerList((prev) => [
                   ...prev,
