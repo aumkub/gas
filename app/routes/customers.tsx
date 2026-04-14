@@ -106,6 +106,19 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
     setCustomerList(customers);
   }, [customers]);
 
+  // Keyboard shortcut for adding new customer (Ctrl+N)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === 'n') {
+        event.preventDefault();
+        setShowAddForm(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   useEffect(() => {
     if (!actionData) return;
 
