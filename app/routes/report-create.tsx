@@ -1090,13 +1090,27 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
         {/* Messages */}
         {toast && (
           <div
-            className={`fixed bottom-4 right-4 rounded-lg px-4 py-2.5 text-sm text-white shadow-lg ${
+            className={`fixed bottom-4 right-4 rounded-lg px-4 py-2.5 text-sm text-white shadow-lg z-50 ${
               toast.type === "success" ? "bg-[#16A34A]" : "bg-[#DC2626]"
             }`}
           >
             {toast.message}
           </div>
         )}
+
+        {/* Floating Save Button */}
+        <div className="fixed bottom-6 right-6 z-40">
+          <Button
+            onClick={saveReport}
+            disabled={isSaving || isSubmitting}
+            isLoading={isSaving || isSubmitting}
+            size="compact"
+            className="shadow-lg bg-linear-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 hover:shadow-xl px-6 py-4 text-lg"
+          >
+            <FontAwesomeIcon icon={faFloppyDisk} className="mr-2 h-5 w-5" />
+            บันทึกทันที
+          </Button>
+        </div>
       </div>
     </div>
   );
