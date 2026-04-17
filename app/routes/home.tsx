@@ -304,84 +304,6 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
           </div>
         </div>
 
-        {/* Monthly public share */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 min-w-14 shrink-0 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg">
-                <FontAwesomeIcon icon={faShareNodes} className="h-7 w-7 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-800">แชร์รายงานทั้งเดือน (สาธารณะ)</h3>
-                <p className="mt-1 text-sm text-gray-600 max-w-xl">
-                  สร้างลิงก์เดียวให้ผู้อื่นเปิดดูสรุปยอดทั้งเดือน กราฟรายวัน เลือกดูรายงานทีละวัน และยอดรวมเดือน — ไม่ต้องล็อกอิน
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleCreateMonthlyShare}
-              disabled={reports.length === 0 || isCreatingMonthlyShare}
-              className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium text-white bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <FontAwesomeIcon icon={faShareNodes} className="h-5 w-5" />
-              {isCreatingMonthlyShare ? "กำลังสร้าง…" : "สร้างลิงก์แชร์เดือนนี้"}
-            </button>
-          </div>
-          {reports.length === 0 && (
-            <p className="mt-4 text-sm text-amber-700 bg-amber-50 px-4 py-2 rounded-lg">
-              ยังไม่มีรายงานในเดือนนี้ จึงยังสร้างลิงก์แชร์ไม่ได้
-            </p>
-          )}
-        </div>
-
-        <Modal isOpen={!!shareUrl} onClose={() => setShareUrl(null)} size={SIZE.large}>
-          {shareUrl && (
-            <div className="p-6">
-              <div className="flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">ลิงก์แชร์รายเดือน</h3>
-                  <p className="mt-1 text-sm text-gray-600">
-                    คัดลอกลิงก์ด้านล่างเพื่อส่งให้ผู้ที่ต้องการดูข้อมูลเดือน{" "}
-                    <span className="font-semibold text-indigo-600">
-                      {monthNames[currentMonth]} {currentYear}
-                    </span>
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShareUrl(null)}
-                  className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
-                  aria-label="ปิด"
-                >
-                  <FontAwesomeIcon icon={faXmark} className="h-5 w-5" />
-                </button>
-              </div>
-              <div className="mt-4 space-y-3">
-                <input
-                  readOnly
-                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm"
-                  value={shareUrl}
-                />
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      void navigator.clipboard.writeText(shareUrl);
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faCopy} className="mr-2 h-4 w-4" />
-                    คัดลอกลิงก์
-                  </Button>
-                  <Button type="button" kind="tertiary" onClick={() => setShareUrl(null)}>
-                    ปิด
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </Modal>
-
         {/* Calendar */}
         <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
           {/* Weekday Headers */}
@@ -487,6 +409,84 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
             </div>
           </div>
         </div>
+
+        {/* Monthly public share */}
+        <div className="mt-8 bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="w-14 h-14 min-w-14 shrink-0 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg">
+                <FontAwesomeIcon icon={faShareNodes} className="h-7 w-7 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">แชร์รายงานทั้งเดือน (สาธารณะ)</h3>
+                <p className="mt-1 text-sm text-gray-600 max-w-xl">
+                  สร้างลิงก์เดียวให้ผู้อื่นเปิดดูสรุปยอดทั้งเดือน กราฟรายวัน เลือกดูรายงานทีละวัน และยอดรวมเดือน — ไม่ต้องล็อกอิน
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleCreateMonthlyShare}
+              disabled={reports.length === 0 || isCreatingMonthlyShare}
+              className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium text-white bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FontAwesomeIcon icon={faShareNodes} className="h-5 w-5" />
+              {isCreatingMonthlyShare ? "กำลังสร้าง…" : "สร้างลิงก์แชร์เดือนนี้"}
+            </button>
+          </div>
+          {reports.length === 0 && (
+            <p className="mt-4 text-sm text-amber-700 bg-amber-50 px-4 py-2 rounded-lg">
+              ยังไม่มีรายงานในเดือนนี้ จึงยังสร้างลิงก์แชร์ไม่ได้
+            </p>
+          )}
+        </div>
+
+        <Modal isOpen={!!shareUrl} onClose={() => setShareUrl(null)} size={SIZE.large}>
+          {shareUrl && (
+            <div className="p-6">
+              <div className="flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">ลิงก์แชร์รายเดือน</h3>
+                  <p className="mt-1 text-sm text-gray-600">
+                    คัดลอกลิงก์ด้านล่างเพื่อส่งให้ผู้ที่ต้องการดูข้อมูลเดือน{" "}
+                    <span className="font-semibold text-indigo-600">
+                      {monthNames[currentMonth]} {currentYear}
+                    </span>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShareUrl(null)}
+                  className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+                  aria-label="ปิด"
+                >
+                  <FontAwesomeIcon icon={faXmark} className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="mt-4 space-y-3">
+                <input
+                  readOnly
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm"
+                  value={shareUrl}
+                />
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      void navigator.clipboard.writeText(shareUrl);
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faCopy} className="mr-2 h-4 w-4" />
+                    คัดลอกลิงก์
+                  </Button>
+                  <Button type="button" kind="tertiary" onClick={() => setShareUrl(null)}>
+                    ปิด
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </Modal>
 
         {/* CSV Export Section */}
         <div className="mt-8 bg-white rounded-2xl shadow-lg p-6 border border-gray-100">

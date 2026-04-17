@@ -159,16 +159,16 @@ export function ReportSummary({
                                 key={item.id}
                                 className="border-t border-gray-200"
                               >
-                                <td className="px-2 py-2 text-base font-medium">
+                                <td className="px-2 py-2 text-sm font-medium">
                                   {item.product_name || "-"}
                                 </td>
-                                <td className="px-2 py-2 text-right text-base font-medium">
+                                <td className="px-2 py-2 text-right text-sm font-medium">
                                   {formatCurrency(item.price)}
                                 </td>
-                                <td className="px-2 py-2 text-right text-base font-medium">
+                                <td className="px-2 py-2 text-right text-sm font-medium">
                                   {item.quantity}
                                 </td>
-                                <td className="px-2 py-2 text-right text-base font-medium font-medium">
+                                <td className="px-2 py-2 text-right text-sm font-medium font-medium">
                                   {formatCurrency(item.total)}
                                 </td>
                               </tr>
