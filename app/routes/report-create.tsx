@@ -28,6 +28,7 @@ import {
   hardDeleteReportById,
 } from "~/lib/db";
 import { useState, useEffect, useCallback } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import { Button } from "~/components/ui/button";
 import { Heading } from "~/components/Heading";
 import { Modal, SIZE } from "~/components/ui/modal";
@@ -48,6 +49,8 @@ import {
   faFloppyDisk,
   faHouse,
   faTrashCan,
+  faCopy,
+  faExternalLink,
 } from "@fortawesome/free-solid-svg-icons";
 
 export function meta({}: Route.MetaArgs) {
@@ -997,7 +1000,14 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
                 />
               </div>
 
-              <div className="flex gap-2 justify-end">
+              <div className="mb-4 flex flex-col items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">สแกน QR เพื่อเปิดลิงก์</span>
+                <div className="rounded-xl border border-gray-200 bg-white p-2 shadow-sm">
+                  <QRCodeSVG value={shareUrl} size={200} level="M" includeMargin />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 justify-end">
                 <Button
                   onClick={() => {
                     navigator.clipboard.writeText(shareUrl);
@@ -1005,7 +1015,17 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
                   }}
                   className="bg-linear-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600"
                 >
+                  <FontAwesomeIcon icon={faCopy} className="mr-2 h-4 w-4" />
                   คัดลอกลิงก์
+                </Button>
+                <Button
+                  kind="secondary"
+                  onClick={() => {
+                    window.open(shareUrl, "_blank", "noopener,noreferrer");
+                  }}
+                >
+                  <FontAwesomeIcon icon={faExternalLink} className="mr-2 h-4 w-4" />
+                  เปิดในแท็บใหม่
                 </Button>
                 <Button
                   onClick={() => {

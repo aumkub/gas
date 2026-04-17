@@ -21,8 +21,10 @@ import {
   faShareNodes,
   faCopy,
   faXmark,
+  faExternalLink,
 } from "@fortawesome/free-solid-svg-icons";
 import { useState, useEffect } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import { Modal, SIZE } from "~/components/ui/modal";
 import { Button } from "~/components/ui/button";
 
@@ -463,12 +465,18 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
                   <FontAwesomeIcon icon={faXmark} className="h-5 w-5" />
                 </button>
               </div>
-              <div className="mt-4 space-y-3">
+              <div className="mt-4 space-y-4">
                 <input
                   readOnly
                   className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm"
                   value={shareUrl}
                 />
+                <div className="flex flex-col items-center gap-2">
+                  <p className="text-sm font-medium text-gray-700">สแกน QR เพื่อเปิดลิงก์</p>
+                  <div className="rounded-xl border border-gray-200 bg-white p-2 shadow-sm">
+                    <QRCodeSVG value={shareUrl} size={200} level="M" includeMargin />
+                  </div>
+                </div>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
@@ -478,6 +486,16 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
                   >
                     <FontAwesomeIcon icon={faCopy} className="mr-2 h-4 w-4" />
                     คัดลอกลิงก์
+                  </Button>
+                  <Button
+                    type="button"
+                    kind="secondary"
+                    onClick={() => {
+                      window.open(shareUrl, "_blank", "noopener,noreferrer");
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faExternalLink} className="mr-2 h-4 w-4" />
+                    เปิดในแท็บใหม่
                   </Button>
                   <Button type="button" kind="tertiary" onClick={() => setShareUrl(null)}>
                     ปิด
