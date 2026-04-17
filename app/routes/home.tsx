@@ -1,8 +1,8 @@
 import type { Route } from "./+types/home";
-import { Link, redirect, useNavigate, Form } from "react-router";
+import { Link, redirect, useNavigate, useSubmit, useNavigation } from "react-router";
 import { requireAuth } from "~/lib/session";
-import { getReportsByMonth } from "~/lib/db";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, parseISO, isToday, getMonth, getYear } from "date-fns";
+import { getReportsByMonth, createSharedMonthlyLink } from "~/lib/db";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, getMonth, getYear } from "date-fns";
 import { th } from "date-fns/locale";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -18,7 +18,13 @@ import {
   faFileLines,
   faUsers,
   faDownload,
+  faShareNodes,
+  faCopy,
+  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
+import { useState, useEffect } from "react";
+import { Modal, SIZE } from "~/components/ui/modal";
+import { Button } from "~/components/ui/button";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -54,9 +60,43 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   }
 }
 
-export default function Home({ loaderData }: Route.ComponentProps) {
+export async function action({ context, request }: Route.ActionArgs) {
+  const { user } = await requireAuth(request, context.cloudflare.env.DB);
+  const formData = await request.formData();
+  const intent = formData.get("intent") as string;
+  const db = context.cloudflare.env.DB;
+
+  if (intent !== "create-monthly-share-link") {
+    return { error: "ไม่พบการกระทำที่ต้องการ" };
+  }
+
+  const year = parseInt(String(formData.get("year")), 10);
+  const monthZero = parseInt(String(formData.get("month")), 10);
+  if (!Number.isFinite(year) || !Number.isFinite(monthZero)) {
+    return { error: "ข้อมูลเดือนไม่ถูกต้อง" };
+  }
+
+  const monthDb = monthZero + 1;
+  try {
+    const linkId = await createSharedMonthlyLink(db, user.id, year, monthDb);
+    const shareUrl = `${new URL(request.url).origin}/share/month/${linkId}`;
+    return { success: true as const, shareUrl };
+  } catch (error) {
+    console.error("Monthly share link error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return { error: `สร้างลิงก์ไม่สำเร็จ (${message})` };
+  }
+}
+
+export default function Home({ loaderData, actionData }: Route.ComponentProps) {
   const { user, reports, currentMonth, currentYear } = loaderData;
   const navigate = useNavigate();
+  const submit = useSubmit();
+  const navigation = useNavigation();
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const isCreatingMonthlyShare =
+    navigation.state !== "idle" &&
+    navigation.formData?.get("intent") === "create-monthly-share-link";
   const monthStart = startOfMonth(new Date(currentYear, currentMonth));
   const monthEnd = endOfMonth(monthStart);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
@@ -127,6 +167,23 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const allDays = [...prevMonthPadding, ...days, ...nextMonthPadding];
 
   const weekDays = ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."];
+
+  useEffect(() => {
+    if (!actionData) return;
+    if ("shareUrl" in actionData && actionData.shareUrl) {
+      setShareUrl(actionData.shareUrl);
+    } else if ("error" in actionData && actionData.error) {
+      alert(actionData.error);
+    }
+  }, [actionData]);
+
+  const handleCreateMonthlyShare = () => {
+    const formData = new FormData();
+    formData.append("intent", "create-monthly-share-link");
+    formData.append("year", String(currentYear));
+    formData.append("month", String(currentMonth));
+    submit(formData, { method: "post" });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -246,7 +303,84 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             </button>
           </div>
         </div>
-   
+
+        {/* Monthly public share */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="w-14 h-14 min-w-14 shrink-0 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg">
+                <FontAwesomeIcon icon={faShareNodes} className="h-7 w-7 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">แชร์รายงานทั้งเดือน (สาธารณะ)</h3>
+                <p className="mt-1 text-sm text-gray-600 max-w-xl">
+                  สร้างลิงก์เดียวให้ผู้อื่นเปิดดูสรุปยอดทั้งเดือน กราฟรายวัน เลือกดูรายงานทีละวัน และยอดรวมเดือน — ไม่ต้องล็อกอิน
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleCreateMonthlyShare}
+              disabled={reports.length === 0 || isCreatingMonthlyShare}
+              className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium text-white bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FontAwesomeIcon icon={faShareNodes} className="h-5 w-5" />
+              {isCreatingMonthlyShare ? "กำลังสร้าง…" : "สร้างลิงก์แชร์เดือนนี้"}
+            </button>
+          </div>
+          {reports.length === 0 && (
+            <p className="mt-4 text-sm text-amber-700 bg-amber-50 px-4 py-2 rounded-lg">
+              ยังไม่มีรายงานในเดือนนี้ จึงยังสร้างลิงก์แชร์ไม่ได้
+            </p>
+          )}
+        </div>
+
+        <Modal isOpen={!!shareUrl} onClose={() => setShareUrl(null)} size={SIZE.large}>
+          {shareUrl && (
+            <div className="p-6">
+              <div className="flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">ลิงก์แชร์รายเดือน</h3>
+                  <p className="mt-1 text-sm text-gray-600">
+                    คัดลอกลิงก์ด้านล่างเพื่อส่งให้ผู้ที่ต้องการดูข้อมูลเดือน{" "}
+                    <span className="font-semibold text-indigo-600">
+                      {monthNames[currentMonth]} {currentYear}
+                    </span>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShareUrl(null)}
+                  className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+                  aria-label="ปิด"
+                >
+                  <FontAwesomeIcon icon={faXmark} className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="mt-4 space-y-3">
+                <input
+                  readOnly
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm"
+                  value={shareUrl}
+                />
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      void navigator.clipboard.writeText(shareUrl);
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faCopy} className="mr-2 h-4 w-4" />
+                    คัดลอกลิงก์
+                  </Button>
+                  <Button type="button" kind="tertiary" onClick={() => setShareUrl(null)}>
+                    ปิด
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </Modal>
 
         {/* Calendar */}
         <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">

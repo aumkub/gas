@@ -132,6 +132,20 @@ CREATE INDEX IF NOT EXISTS idx_bill_hold_items_report ON bill_hold_items(report_
 CREATE INDEX IF NOT EXISTS idx_check_items_report ON check_items(report_id);
 CREATE INDEX IF NOT EXISTS idx_shared_links_link_id ON shared_links(link_id);
 
+-- Public share links for an entire calendar month (day-by-day view on share page)
+CREATE TABLE IF NOT EXISTS shared_monthly_links (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  link_id TEXT UNIQUE NOT NULL,
+  year INTEGER NOT NULL,
+  month INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_shared_monthly_links_link_id ON shared_monthly_links(link_id);
+CREATE INDEX IF NOT EXISTS idx_shared_monthly_links_ym ON shared_monthly_links(year, month);
+
 -- Insert default user
 INSERT OR IGNORE INTO users (username, password)
 VALUES ('to', '$2b$10$rJj8KwKZqGZQqGZQqGZQqOeXeXeXeXeXeXeXeXeXeXeXeXeXeXeXeXeXeXeXeX');
