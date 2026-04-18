@@ -3,6 +3,7 @@ import { useNavigation, Form } from "react-router";
 import { requireAuth } from "~/lib/session";
 import {
   getProductsPrices,
+  getProductPrices,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -73,6 +74,12 @@ export async function action({ context, request }: Route.ActionArgs) {
         const priceLabel = formData.get("priceLabel") as string;
         if (!productId || isNaN(price) || price <= 0) {
           return { error: "ข้อมูลไม่ถูกต้อง" };
+        }
+        // Check if price already exists for this product
+        const existingPrices = await getProductPrices(db, productId);
+        const priceExists = existingPrices.some(p => p.price === price);
+        if (priceExists) {
+          return { error: "ราคานี้มีอยู่แล้ว กรุณาระบุราคาอื่น" };
         }
         await addProductPrice(db, productId, price, priceLabel || null);
         return { success: "เพิ่มราคาเรียบร้อย", intent: "add-price", productId };
@@ -372,6 +379,14 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                           const nextPrice = Number.parseFloat(rawPrice);
                           if (Number.isNaN(nextPrice) || nextPrice <= 0) return;
 
+                          // Check if price already exists
+                          const priceExists = product.prices.some(p => p.price === nextPrice);
+                          if (priceExists) {
+                            alert("ราคานี้มีอยู่แล้ว กรุณาระบุราคาอื่น");
+                            event.preventDefault();
+                            return;
+                          }
+
                           setProductsState((prev) =>
                             prev.map((item) =>
                               item.id === product.id
@@ -404,6 +419,7 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                             required
                             placeholder="ราคา"
                             className="flex-1 min-w-[120px] px-3 py-2 border border-gray-300 rounded-lg"
+                            autoFocus
                           />
                           <Input
                             name="priceLabel"

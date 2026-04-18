@@ -61,6 +61,7 @@ export interface SalesItem {
   price: number;
   quantity: number;
   total: number;
+  is_cash?: number;
   customer_name?: string;
   product_name?: string;
 }
@@ -275,7 +276,7 @@ export async function getProductPrices(
   productId: number
 ): Promise<ProductPrice[]> {
   const result = await db
-    .prepare("SELECT * FROM product_prices WHERE product_id = ?")
+    .prepare("SELECT * FROM product_prices WHERE product_id = ? ORDER BY price ASC")
     .bind(productId)
     .all<ProductPrice>();
   return result.results;
@@ -562,13 +563,14 @@ export async function createSalesItem(
   productId: number,
   price: number,
   quantity: number,
-  total: number
+  total: number,
+  isCash: number = 0
 ): Promise<void> {
   await db
     .prepare(
-      "INSERT INTO sales_items (report_id, customer_id, product_id, price, quantity, total) VALUES (?, ?, ?, ?, ?, ?)"
+      "INSERT INTO sales_items (report_id, customer_id, product_id, price, quantity, total, is_cash) VALUES (?, ?, ?, ?, ?, ?, ?)"
     )
-    .bind(reportId, customerId, productId, price, quantity, total)
+    .bind(reportId, customerId, productId, price, quantity, total, isCash)
     .run();
 }
 
@@ -711,6 +713,70 @@ export async function getSharedLink(
     .bind(linkId)
     .first<{ report_id: number }>();
   return result || null;
+}
+
+export interface SharedMonthlyLink {
+  link_id: string;
+  year: number;
+  month: number;
+  user_id: number;
+}
+
+export async function createSharedMonthlyLink(
+  db: D1Database,
+  userId: number,
+  year: number,
+  month: number
+): Promise<string> {
+  const linkId = crypto.randomUUID();
+  await db
+    .prepare(
+      "INSERT INTO shared_monthly_links (link_id, year, month, user_id) VALUES (?, ?, ?, ?)"
+    )
+    .bind(linkId, year, month, userId)
+    .run();
+  return linkId;
+}
+
+export async function getSharedMonthlyLink(
+  db: D1Database,
+  linkId: string
+): Promise<SharedMonthlyLink | null> {
+  const result = await db
+    .prepare(
+      "SELECT link_id, year, month, user_id FROM shared_monthly_links WHERE link_id = ?"
+    )
+    .bind(linkId)
+    .first<SharedMonthlyLink>();
+  return result || null;
+}
+
+/** Per-report grand total (sales + bill hold + checks) for each day that has a report in the month. */
+export async function getReportGrandTotalsForMonth(
+  db: D1Database,
+  year: number,
+  month: number
+): Promise<Array<{ report_date: string; grand_total: number }>> {
+  const result = await db
+    .prepare(`
+      SELECT
+        r.report_date as report_date,
+        (
+          COALESCE((SELECT SUM(total) FROM sales_items WHERE report_id = r.id), 0) +
+          COALESCE((SELECT SUM(amount) FROM bill_hold_items WHERE report_id = r.id), 0) +
+          COALESCE((SELECT SUM(amount) FROM check_items WHERE report_id = r.id), 0)
+        ) as grand_total
+      FROM reports r
+      WHERE strftime('%Y', r.report_date) = ? AND strftime('%m', r.report_date) = ?
+      ORDER BY r.report_date ASC
+    `)
+    .bind(year.toString(), month.toString().padStart(2, "0"))
+    .all<{ report_date: string; grand_total: number }>();
+  const rows = result.results || [];
+  return rows.map((row) => ({
+    report_date: row.report_date,
+    grand_total: Number(row.grand_total),
+  }));
 }
 
 // Version history

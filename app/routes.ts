@@ -12,5 +12,6 @@ export default [
   route("api/customers", "routes/api.customers.tsx"),
   route("report/create", "routes/report-create.tsx"),
   route("report/view", "routes/report-view.tsx"),
+  route("share/month/:id", "routes/share-month.tsx"),
   route("share/:id", "routes/share.tsx"),
 ] satisfies RouteConfig;

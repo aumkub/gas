@@ -33,6 +33,7 @@ export interface SalesCustomer {
   customerId: number | null;
   customerName: string;
   items: SalesItem[];
+  isCash: boolean;
 }
 
 // Validation functions
@@ -122,6 +123,9 @@ export function SalesGroup({
   }, [focusTarget, onFocusComplete]);
 
   const groupTotal = calculateSalesGroupTotal(customers);
+  const cashTotal = customers
+    .filter(customer => customer.isCash)
+    .reduce((sum, customer) => sum + calculateCustomerTotal(customer.items), 0);
 
   const addCustomer = () => {
     const newItem: SalesItem = {
@@ -137,6 +141,7 @@ export function SalesGroup({
       customerId: null,
       customerName: "",
       items: [newItem], // Automatically add one product line
+      isCash: false,
     };
     const updatedCustomers = [...customers, newCustomer];
     onChange(updatedCustomers);
@@ -304,7 +309,27 @@ export function SalesGroup({
                     }}
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2 items-end">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id={`cash-${customer.id}`}
+                      checked={customer.isCash || false}
+                      onChange={(e) => {
+                        updateCustomer(customer.id, {
+                          isCash: e.target.checked,
+                        });
+                      }}
+                      className="h-5 w-5 !bg-white text-green-500 focus:ring-green-400 focus:ring-offset-0 border-gray-400 rounded cursor-pointer"
+                    />
+                    <label
+                      htmlFor={`cash-${customer.id}`}
+                      className="text-sm font-medium text-gray-700 cursor-pointer"
+                    >
+                      สด
+                    </label>
+                  </div>
+                  <div className="flex gap-2">
                   <Button
                     onClick={() => toggleExpanded(customer.id)}
                     size="compact"
@@ -321,6 +346,7 @@ export function SalesGroup({
                   >
                     ลบลูกค้า
                   </Button>
+                  </div>
                 </div>
               </div>
 
@@ -385,8 +411,17 @@ export function SalesGroup({
 
       {/* Group Total */}
       <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-2">
-        <div className="text-right text-base font-semibold text-green-800">
-          ยอดรวมขาย: {formatCurrency(groupTotal)}
+        <div className="space-y-1">
+          <div className="flex justify-between items-center text-base">
+            <span className="font-semibold text-green-800">ยอดรวมขาย:</span>
+            <span className="font-bold text-green-800">{formatCurrency(groupTotal)}</span>
+          </div>
+          {cashTotal > 0 && (
+            <div className="flex justify-between items-center text-sm border-t border-green-300 pt-1">
+              <span className="font-semibold text-red-700">ชำระเงินสด:</span>
+              <span className="font-bold text-red-700">{formatCurrency(cashTotal)}</span>
+            </div>
+          )}
         </div>
       </div>
     </Card>

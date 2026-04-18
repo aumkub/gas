@@ -20,7 +20,13 @@ import { Modal, SIZE } from "~/components/ui/modal";
 import { useState, useEffect, useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faCopy, faComments, faXmark } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArrowLeft,
+  faCopy,
+  faComments,
+  faXmark,
+  faExternalLink,
+} from "@fortawesome/free-solid-svg-icons";
 
 export async function action({ context, request }: Route.ActionArgs) {
   const { user } = await requireAuth(request, context.cloudflare.env.DB);
@@ -242,7 +248,7 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
                 </div>
               )}
 
-              <div className="flex gap-2 justify-end">
+              <div className="flex flex-wrap gap-2 justify-end">
                 <Button
                   onClick={() => {
                     navigator.clipboard.writeText(shareUrl);
@@ -252,6 +258,15 @@ export default function ReportView({ loaderData, actionData }: Route.ComponentPr
                 >
                   <FontAwesomeIcon icon={faCopy} className="mr-2 h-4 w-4" />
                   คัดลอกลิงก์
+                </Button>
+                <Button
+                  onClick={() => {
+                    window.open(shareUrl, "_blank", "noopener,noreferrer");
+                  }}
+                  kind="secondary"
+                >
+                  <FontAwesomeIcon icon={faExternalLink} className="mr-2 h-4 w-4" />
+                  เปิดในแท็บใหม่
                 </Button>
                 <Button
                   onClick={() => {

@@ -3,6 +3,7 @@ import { useNavigation, Form } from "react-router";
 import { requireAuth } from "~/lib/session";
 import {
   getAllCustomers,
+  getCustomerByName,
   createCustomer,
   updateCustomer,
   deleteCustomer,
@@ -51,6 +52,11 @@ export async function action({ context, request }: Route.ActionArgs) {
         if (!name || !name.trim()) {
           return { error: "กรุณาระบุชื่อลูกค้า" };
         }
+        // Check if customer name already exists
+        const existingCustomer = await getCustomerByName(db, name.trim());
+        if (existingCustomer) {
+          return { error: "ชื่อลูกค้านี้มีอยู่แล้ว กรุณาระบุชื่ออื่น" };
+        }
         await createCustomer(db, name.trim());
         return { success: "เพิ่มลูกค้าเรียบร้อย", intent: "create" };
       }
@@ -93,12 +99,56 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
   const [editingCustomerId, setEditingCustomerId] = useState<number | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10); // Show 10 customers per page
   const makeTempId = () => -Date.now();
   const nowIso = () => new Date().toISOString();
 
   useEffect(() => {
     setCustomerList(customers);
   }, [customers]);
+
+  // Keyboard shortcut for adding new customer (Ctrl+Shift+N)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check for Ctrl+Shift+N or Cmd+Shift+N (Mac)
+      // Support both English and Thai keyboard layouts
+      const isCtrlOrCmd = event.ctrlKey || event.metaKey;
+      const isShift = event.shiftKey;
+
+      // Multiple detection methods for Thai keyboard support
+      const isNKey =
+        event.code === 'KeyN' || // Physical key location
+        event.key === 'N' || // English uppercase
+        event.key === 'น' || // Thai character (N key in Thai mode)
+        event.key === 'ณ' || // Thai character (alternative N key)
+        event.keyCode === 78 || // Legacy key code for N
+        event.which === 78; // Legacy which property
+
+      console.log('Key pressed:', {
+        key: event.key,
+        code: event.code,
+        keyCode: event.keyCode,
+        which: event.which,
+        ctrlKey: event.ctrlKey,
+        metaKey: event.metaKey,
+        shiftKey: event.shiftKey,
+        isCtrlOrCmd: isCtrlOrCmd,
+        isShift: isShift,
+        isNKey: isNKey
+      });
+
+      if (isCtrlOrCmd && isShift && isNKey) {
+        event.preventDefault();
+        event.stopPropagation();
+        console.log('✓ Ctrl+Shift+N detected - opening add customer form');
+        setShowAddForm(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, true); // Use capture phase
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, []);
 
   useEffect(() => {
     if (!actionData) return;
@@ -125,6 +175,17 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
     customer.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentCustomers = filteredCustomers.slice(indexOfFirstItem, indexOfLastItem);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 px-4 py-8">
       <div className="max-w-6xl mx-auto">
@@ -149,7 +210,7 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
               <div className="flex gap-3">
                 <a
                   href="/"
-                  className="inline-flex items-center gap-2 justify-center h-[44px] min-h-[44px] px-6 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+                  className="inline-flex items-center gap-2 justify-center h-[48px] min-h-[48px] px-6 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
                 >
                   <FontAwesomeIcon icon={faArrowLeft} className="h-5 w-5" />
                   กลับหน้าหลัก
@@ -177,6 +238,17 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
                 const name = (formData.get("name") as string)?.trim();
                 if (!name) return;
 
+                // Check if customer name already exists
+                const nameExists = customerList.some(
+                  (customer) => customer.name.toLowerCase() === name.toLowerCase()
+                );
+
+                if (nameExists) {
+                  alert("ชื่อลูกค้านี้มีอยู่แล้ว กรุณาระบุชื่ออื่น");
+                  event.preventDefault();
+                  return;
+                }
+
                 setCustomerList((prev) => [
                   ...prev,
                   {
@@ -201,6 +273,7 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
                   required
                   placeholder="ระบุชื่อลูกค้า"
                   className="w-full text-lg px-4 py-4.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  autoFocus
                 />
               </div>
               <div className="flex gap-3">
@@ -255,8 +328,9 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
                 <thead className="bg-gradient-to-r from-purple-50 to-blue-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">
@@ -274,7 +348,7 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filteredCustomers.map((customer) => (
+                  {currentCustomers.map((customer) => (
                     <tr
                       key={customer.id}
                       className="hover:bg-gray-50 transition-colors"
@@ -390,6 +464,74 @@ export default function Customers({ loaderData, actionData }: Route.ComponentPro
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    แสดง {indexOfFirstItem + 1} ถึง {Math.min(indexOfLastItem, filteredCustomers.length)} จากทั้งหมด {filteredCustomers.length} รายการ
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {/* Previous Button */}
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
+                    >
+                      ก่อนหน้า
+                    </button>
+
+                    {/* Page Numbers */}
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                        // Show first page, last page, current page, and adjacent pages
+                        const showPage =
+                          page === 1 ||
+                          page === totalPages ||
+                          (page >= currentPage - 1 && page <= currentPage + 1);
+
+                        if (!showPage) {
+                          // Show ellipsis for hidden pages
+                          if (page === currentPage - 2 || page === currentPage + 2) {
+                            return (
+                              <span key={page} className="px-2 text-gray-400">
+                                ...
+                              </span>
+                            );
+                          }
+                          return null;
+                        }
+
+                        return (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`min-w-[40px] px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                              currentPage === page
+                                ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white border-purple-500'
+                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Next Button */}
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
+                    >
+                      ถัดไป
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
           )}
         </div>
 

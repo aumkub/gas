@@ -34,6 +34,10 @@ export function ReportSummary({
   // Calculate totals
   const salesTotal = salesItems.reduce((sum, item) => sum + item.total, 0);
 
+  const cashSalesTotal = salesItems
+    .filter(item => item.is_cash === 1)
+    .reduce((sum, item) => sum + item.total, 0);
+
   const billHoldTotal = billHoldItems.reduce((sum, item) => sum + item.amount, 0);
 
   const checkTotal = checkItems.reduce((sum, item) => sum + item.amount, 0);
@@ -113,6 +117,7 @@ export function ReportSummary({
                 {Array.from(salesByCustomer.entries()).map(([customerId, items]) => {
                   const customerName = items[0]?.customer_name || "ไม่ระบุชื่อ";
                   const customerTotal = items.reduce((sum, item) => sum + item.total, 0);
+                  const isCash = items[0]?.is_cash === 1;
 
                   return (
                     <div
@@ -120,7 +125,10 @@ export function ReportSummary({
                       className="border border-gray-300 rounded-lg p-3"
                     >
                       <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-lg font-semibold">{customerName}</h3>
+                        <h3 className={`text-lg font-semibold ${isCash ? 'text-red-600' : ''}`}>
+                          {customerName}
+                          {isCash && <span className="ml-1">(สด)</span>}
+                        </h3>
                         <div className="text-base font-medium text-blue-600">
                           ยอดรวม: {formatCurrency(customerTotal)}
                         </div>
@@ -151,16 +159,16 @@ export function ReportSummary({
                                 key={item.id}
                                 className="border-t border-gray-200"
                               >
-                                <td className="px-2 py-2 text-base font-medium">
+                                <td className="px-2 py-2 text-sm font-medium">
                                   {item.product_name || "-"}
                                 </td>
-                                <td className="px-2 py-2 text-right text-base font-medium">
+                                <td className="px-2 py-2 text-right text-sm font-medium">
                                   {formatCurrency(item.price)}
                                 </td>
-                                <td className="px-2 py-2 text-right text-base font-medium">
+                                <td className="px-2 py-2 text-right text-sm font-medium">
                                   {item.quantity}
                                 </td>
-                                <td className="px-2 py-2 text-right text-base font-medium font-medium">
+                                <td className="px-2 py-2 text-right text-sm font-medium font-medium">
                                   {formatCurrency(item.total)}
                                 </td>
                               </tr>
@@ -175,8 +183,15 @@ export function ReportSummary({
             )}
 
             <div className="mt-3 bg-green-50 border border-green-500 rounded-lg px-3 py-2">
-              <div className="text-base font-bold text-right">
-                ยอดรวมขาย: {formatCurrency(salesTotal)}
+              <div className="space-y-1">
+                <div className="text-base font-bold text-right text-green-800">
+                  ยอดรวมขาย: {formatCurrency(salesTotal)}
+                </div>
+                {cashSalesTotal > 0 && (
+                  <div className="text-sm font-semibold text-right text-red-700 border-t border-green-400 pt-1">
+                    ชำระเงินสด: {formatCurrency(cashSalesTotal)}
+                  </div>
+                )}
               </div>
             </div>
           </Card>

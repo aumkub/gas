@@ -17,6 +17,7 @@ import {
   createCheckItem,
   getAllCustomers,
   getProductsPrices,
+  getProductPrices,
   getAllBanks,
   getOrCreateCustomer,
   getProductByName,
@@ -27,6 +28,7 @@ import {
   hardDeleteReportById,
 } from "~/lib/db";
 import { useState, useEffect, useCallback } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import { Button } from "~/components/ui/button";
 import { Heading } from "~/components/Heading";
 import { Modal, SIZE } from "~/components/ui/modal";
@@ -47,6 +49,8 @@ import {
   faFloppyDisk,
   faHouse,
   faTrashCan,
+  faCopy,
+  faExternalLink,
 } from "@fortawesome/free-solid-svg-icons";
 
 export function meta({}: Route.MetaArgs) {
@@ -176,12 +180,27 @@ export async function action({ context, request }: Route.ActionArgs) {
               const existingProduct = await getProductByName(db, productName);
               if (existingProduct) {
                 productId = existingProduct.id;
+                // Check if this price already exists for the existing product
+                const existingPrices = await getProductPrices(db, existingProduct.id);
+                const priceExists = existingPrices.some(p => p.price === item.price);
+                // If price doesn't exist, add it to the product
+                if (!priceExists && item.price > 0) {
+                  await addProductPrice(db, existingProduct.id, item.price, null);
+                }
               } else {
                 const createdProduct = await createProduct(db, productName);
                 productId = createdProduct.id;
                 if (item.price > 0) {
                   await addProductPrice(db, createdProduct.id, item.price, null);
                 }
+              }
+            } else if (productId && item.price > 0) {
+              // For existing products with productId, check if price exists
+              const existingPrices = await getProductPrices(db, productId);
+              const priceExists = existingPrices.some(p => p.price === item.price);
+              // If price doesn't exist, add it to the product
+              if (!priceExists) {
+                await addProductPrice(db, productId, item.price, null);
               }
             }
 
@@ -204,7 +223,8 @@ export async function action({ context, request }: Route.ActionArgs) {
                 productId,
                 item.price,
                 item.quantity || 1,
-                item.total
+                item.total,
+                customer.isCash ? 1 : 0
               );
               salesCount++;
             } else {
@@ -369,6 +389,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
           customerId: item.customer_id,
           customerName: item.customer_name || "",
           items: [],
+          isCash: item.is_cash === 1,
         });
       }
 
@@ -512,6 +533,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
       customerId: null,
       customerName: "",
       items: [newItem], // Add one product line by default
+      isCash: false,
     };
     const updatedCustomers = [...salesData, newCustomer];
     setSalesData(updatedCustomers);
@@ -978,7 +1000,14 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
                 />
               </div>
 
-              <div className="flex gap-2 justify-end">
+              <div className="mb-4 flex flex-col items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">สแกน QR เพื่อเปิดลิงก์</span>
+                <div className="rounded-xl border border-gray-200 bg-white p-2 shadow-sm">
+                  <QRCodeSVG value={shareUrl} size={200} level="M" includeMargin />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 justify-end">
                 <Button
                   onClick={() => {
                     navigator.clipboard.writeText(shareUrl);
@@ -986,7 +1015,17 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
                   }}
                   className="bg-linear-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600"
                 >
+                  <FontAwesomeIcon icon={faCopy} className="mr-2 h-4 w-4" />
                   คัดลอกลิงก์
+                </Button>
+                <Button
+                  kind="secondary"
+                  onClick={() => {
+                    window.open(shareUrl, "_blank", "noopener,noreferrer");
+                  }}
+                >
+                  <FontAwesomeIcon icon={faExternalLink} className="mr-2 h-4 w-4" />
+                  เปิดในแท็บใหม่
                 </Button>
                 <Button
                   onClick={() => {
@@ -1071,13 +1110,27 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
         {/* Messages */}
         {toast && (
           <div
-            className={`fixed bottom-4 right-4 rounded-lg px-4 py-2.5 text-sm text-white shadow-lg ${
+            className={`fixed bottom-4 left-4 rounded-lg px-4 py-2.5 text-sm text-white shadow-lg z-50 ${
               toast.type === "success" ? "bg-[#16A34A]" : "bg-[#DC2626]"
             }`}
           >
             {toast.message}
           </div>
         )}
+
+        {/* Floating Save Button */}
+        <div className="fixed bottom-6 right-6 z-40">
+          <Button
+            onClick={saveReport}
+            disabled={isSaving || isSubmitting}
+            isLoading={isSaving || isSubmitting}
+            size="compact"
+            className="shadow-lg bg-linear-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 hover:shadow-xl px-6 py-4 text-lg"
+          >
+            <FontAwesomeIcon icon={faFloppyDisk} className="mr-2 h-5 w-5" />
+            บันทึกทันที
+          </Button>
+        </div>
       </div>
     </div>
   );
