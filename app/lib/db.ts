@@ -311,8 +311,22 @@ export async function updateProduct(
     .run();
 }
 
-export async function deleteProduct(db: D1Database, id: number): Promise<void> {
+export async function deleteProduct(db: D1Database, id: number): Promise<{ success: boolean; message?: string }> {
+  // Check if product is used in any sales items
+  const salesCheck = await db
+    .prepare("SELECT COUNT(*) as count FROM sales_items WHERE product_id = ?")
+    .bind(id)
+    .first<{ count: number }>();
+
+  if (salesCheck && salesCheck.count > 0) {
+    return {
+      success: false,
+      message: "ไม่สามารถลบสินค้านี้ได้ เนื่องจากมีประวัติการขายแล้ว"
+    };
+  }
+
   await db.prepare("DELETE FROM products WHERE id = ?").bind(id).run();
+  return { success: true };
 }
 
 export async function addProductPrice(

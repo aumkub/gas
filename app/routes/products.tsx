@@ -61,7 +61,10 @@ export async function action({ context, request }: Route.ActionArgs) {
         if (!id) {
           return { error: "ข้อมูลไม่ถูกต้อง" };
         }
-        await deleteProduct(db, id);
+        const result = await deleteProduct(db, id);
+        if (!result.success) {
+          return { error: result.message || "ไม่สามารถลบสินค้าได้" };
+        }
         return { success: "ลบสินค้าเรียบร้อย", intent: "delete", deletedProductId: id };
       }
 
@@ -346,8 +349,6 @@ export default function Products({ loaderData, actionData }: Route.ComponentProp
                               event.preventDefault();
                               return;
                             }
-
-                            setProductsState((prev) => prev.filter((item) => item.id !== product.id));
                           }}
                         >
                           <input type="hidden" name="intent" value="delete" />
