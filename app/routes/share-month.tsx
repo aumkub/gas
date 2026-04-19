@@ -69,10 +69,9 @@ export async function loader({ context, request, params }: Route.LoaderArgs) {
     getReportGrandTotalsForMonth(db, year, month),
   ]);
 
-  const grandMonth =
-    Number(monthlySummary.total_sales) +
+  const billHoldPlusCashMonth =
     Number(monthlySummary.total_bill_hold) +
-    Number(monthlySummary.total_checks);
+    Number(monthlySummary.total_cash_sales);
 
   const totalMap = new Map(
     totalsByDate.map((t) => [t.report_date, Number(t.grand_total)])
@@ -116,11 +115,12 @@ export async function loader({ context, request, params }: Route.LoaderArgs) {
     month,
     monthlySummary: {
       total_sales: Number(monthlySummary.total_sales),
+      total_cash_sales: Number(monthlySummary.total_cash_sales),
       total_bill_hold: Number(monthlySummary.total_bill_hold),
       total_checks: Number(monthlySummary.total_checks),
       total_reports: Number(monthlySummary.total_reports),
     },
-    grandMonth,
+    billHoldPlusCashMonth,
     chartSeries,
     selectedDate,
     reportDates: totalsByDate.map((t) => t.report_date),
@@ -136,7 +136,7 @@ export default function ShareMonth({ loaderData }: Route.ComponentProps) {
     year,
     month,
     monthlySummary,
-    grandMonth,
+    billHoldPlusCashMonth,
     chartSeries,
     selectedDate,
     reportDates,
@@ -235,11 +235,17 @@ export default function ShareMonth({ loaderData }: Route.ComponentProps) {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <Card className="border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-4">
             <p className="text-sm font-medium text-emerald-800">ยอดขายรวมเดือน</p>
             <p className="mt-1 text-xl font-bold text-emerald-900">
               {formatCurrency(monthlySummary.total_sales)}
+            </p>
+          </Card>
+          <Card className="border border-teal-100 bg-gradient-to-br from-teal-50 to-white p-4">
+            <p className="text-sm font-medium text-teal-800">เงินสด</p>
+            <p className="mt-1 text-xl font-bold text-teal-900">
+              {formatCurrency(monthlySummary.total_cash_sales)}
             </p>
           </Card>
           <Card className="border border-amber-100 bg-gradient-to-br from-amber-50 to-white p-4">
@@ -248,22 +254,23 @@ export default function ShareMonth({ loaderData }: Route.ComponentProps) {
               {formatCurrency(monthlySummary.total_bill_hold)}
             </p>
           </Card>
+          <Card
+            className="border border-indigo-200 p-4 text-white bg-gradient-to-br from-indigo-50 to-white"
+          >
+            <p className="text-sm font-medium text-indigo-900">
+              บิลฝากเก็บ + เงินสด
+            </p>
+            <p className="mt-1 text-2xl font-bold text-indigo-900">
+              {formatCurrency(billHoldPlusCashMonth)}
+            </p>
+            {/* <p className="mt-2 text-xs text-indigo-800">
+              {monthlySummary.total_reports} วันที่มีรายงาน
+            </p> */}
+          </Card>
           <Card className="border border-violet-100 bg-gradient-to-br from-violet-50 to-white p-4">
             <p className="text-sm font-medium text-violet-900">เช็ค</p>
             <p className="mt-1 text-xl font-bold text-violet-950">
               {formatCurrency(monthlySummary.total_checks)}
-            </p>
-          </Card>
-          <Card
-            className="border border-indigo-200 p-4 text-white"
-            style={{
-              background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
-            }}
-          >
-            <p className="text-sm font-medium text-white/90">ยอดรวมทั้งเดือน</p>
-            <p className="mt-1 text-2xl font-bold">{formatCurrency(grandMonth)}</p>
-            <p className="mt-2 text-xs text-white/80">
-              {monthlySummary.total_reports} วันที่มีรายงาน
             </p>
           </Card>
         </div>

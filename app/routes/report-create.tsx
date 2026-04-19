@@ -31,6 +31,7 @@ import { useState, useEffect, useCallback } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Button } from "~/components/ui/button";
 import { Heading } from "~/components/Heading";
+import { Card } from "~/components/Card";
 import { Modal, SIZE } from "~/components/ui/modal";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
@@ -40,7 +41,11 @@ import { BillHoldGroup } from "~/components/BillHoldGroup";
 import type { BillHoldItem } from "~/components/BillHoldGroup";
 import { CheckGroup } from "~/components/CheckGroup";
 import type { CheckItem } from "~/components/CheckGroup";
-import { calculateGrandTotal, formatCurrency } from "~/lib/calculations";
+import {
+  calculateGrandTotal,
+  calculateCustomerTotal,
+  formatCurrency,
+} from "~/lib/calculations";
 import type { ProductPrice } from "~/lib/db";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -647,6 +652,10 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
 
   const checkTotal = checkData.reduce((sum, item) => sum + item.amount, 0);
 
+  const cashSalesTotal = salesData
+    .filter((c) => c.isCash)
+    .reduce((sum, c) => sum + calculateCustomerTotal(c.items), 0);
+
   const grandTotal = calculateGrandTotal(salesTotal, billHoldTotal, checkTotal);
 
   // Track changes
@@ -846,6 +855,7 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
               availableProducts={products}
               availableCustomers={availableCustomers}
               onGetOrCreateCustomer={handleGetOrCreateCustomer}
+              billHoldTotal={billHoldTotal}
               focusTarget={focusTarget}
               onFocusComplete={() => setFocusTarget(null)}
             />
@@ -869,6 +879,44 @@ export default function ReportCreate({ loaderData, actionData }: Route.Component
               focusTarget={focusTarget}
               onFocusComplete={() => setFocusTarget(null)}
             />
+
+            <Card
+              className="p-4 text-white"
+              style={{
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              }}
+            >
+              <Heading styleLevel={3} className="mb-3 text-white text-lg">
+                สรุปยอดรวม
+              </Heading>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-sm">
+                  <span>ขาย:</span>
+                  <span className="font-semibold">{formatCurrency(salesTotal)}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span>บิลฝากเก็บ:</span>
+                  <span className="font-semibold">
+                    {formatCurrency(billHoldTotal)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span>เงินสด:</span>
+                  <span className="font-semibold text-white">
+                    {formatCurrency(cashSalesTotal)}
+                  </span>
+                </div>
+                {(billHoldTotal + cashSalesTotal) > 0 && (
+                  <div className="flex justify-between items-center text-sm border-t border-white/25 pt-2 mt-1">
+                    <span>ยอดรวม (บิลฝากเก็บ + เงินสด):</span>
+                    <span className="font-semibold">
+                      {formatCurrency(billHoldTotal + cashSalesTotal)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </Card>
           </div>
         </div>
 

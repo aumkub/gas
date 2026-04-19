@@ -898,6 +898,7 @@ export async function getMonthlySummary(
   month: number
 ): Promise<{
   total_sales: number;
+  total_cash_sales: number;
   total_bill_hold: number;
   total_checks: number;
   total_reports: number;
@@ -911,6 +912,17 @@ export async function getMonthlySummary(
     `)
     .bind(year.toString(), month.toString().padStart(2, "0"))
     .first<{ total_sales: number }>();
+
+  const cashSalesResult = await db
+    .prepare(`
+      SELECT COALESCE(SUM(si.total), 0) as total_cash_sales
+      FROM sales_items si
+      JOIN reports r ON si.report_id = r.id
+      WHERE strftime('%Y', r.report_date) = ? AND strftime('%m', r.report_date) = ?
+        AND si.is_cash = 1
+    `)
+    .bind(year.toString(), month.toString().padStart(2, "0"))
+    .first<{ total_cash_sales: number }>();
 
   const billHoldResult = await db
     .prepare(`
@@ -943,6 +955,7 @@ export async function getMonthlySummary(
 
   return {
     total_sales: salesResult?.total_sales || 0,
+    total_cash_sales: cashSalesResult?.total_cash_sales || 0,
     total_bill_hold: billHoldResult?.total_bill_hold || 0,
     total_checks: checksResult?.total_checks || 0,
     total_reports: reportsResult?.total_reports || 0,

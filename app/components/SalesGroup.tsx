@@ -70,6 +70,8 @@ interface SalesGroupProps {
   availableProducts: ProductWithPrices[];
   availableCustomers: Array<{ id: number; name: string }>;
   onGetOrCreateCustomer: (name: string) => Promise<number>;
+  /** ยอดรวมบิลฝากเก็บ (สำหรับบรรทัด ยอดรวม บิลฝากเก็บ + เงินสด) */
+  billHoldTotal?: number;
   focusTarget?: {
     type: 'customer' | 'product';
     customerId: string;
@@ -83,6 +85,7 @@ export function SalesGroup({
   availableProducts,
   availableCustomers,
   onGetOrCreateCustomer,
+  billHoldTotal = 0,
   focusTarget,
   onFocusComplete,
 }: SalesGroupProps) {
@@ -417,10 +420,16 @@ export function SalesGroup({
             <span className="font-bold text-green-800">{formatCurrency(groupTotal)}</span>
           </div>
           {cashTotal > 0 && (
-            <div className="flex justify-between items-center text-sm border-t border-green-300 pt-1">
-              <span className="font-semibold text-red-700">ชำระเงินสด:</span>
-              <span className="font-bold text-red-700">{formatCurrency(cashTotal)}</span>
-            </div>
+            <>
+              <div className="flex justify-between items-center text-sm border-t border-green-300 pt-1">
+                <span className="font-semibold text-red-700">ชำระเงินสด:</span>
+                <span className="font-bold text-red-700">{formatCurrency(cashTotal)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm border-t border-green-300 pt-1">
+                <span className="font-semibold text-green-800">ยอดรวม (บิลฝากเก็บ + เงินสด):</span>
+                <span className="font-bold text-green-800">{formatCurrency(billHoldTotal + cashTotal)}</span>
+              </div>
+            </>
           )}
         </div>
       </div>

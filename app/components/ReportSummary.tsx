@@ -314,9 +314,19 @@ export function ReportSummary({
                 </span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span>เช็ค:</span>
-                <span className="font-semibold">{formatCurrency(checkTotal)}</span>
+                <span>เงินสด:</span>
+                <span className="font-semibold text-white">
+                  {formatCurrency(cashSalesTotal)}
+                </span>
               </div>
+              {(billHoldTotal + cashSalesTotal) > 0 && (
+                <div className="flex justify-between items-center text-sm border-t border-white/25 pt-2 mt-1">
+                  <span>ยอดรวม (บิลฝากเก็บ + เงินสด):</span>
+                  <span className="font-semibold">
+                    {formatCurrency(billHoldTotal + cashSalesTotal)}
+                  </span>
+                </div>
+              )}
               {/* <div className="border-t-2 border-white/30 pt-2 mt-2">
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span>ยอดรวมทั้งหมด:</span>
